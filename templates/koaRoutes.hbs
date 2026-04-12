@@ -1,0 +1,145 @@
+/* tslint:disable */
+/* eslint-disable */
+import type { AdditionalProps, Tsoa, TsoaRoute } from 'tsoa-next';
+import { fetchMiddlewares, KoaTemplateService } from 'tsoa-next';
+{{#each controllers}}
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
+import type Router from '@koa/router';
+import type { Context, Middleware, Next } from 'koa';
+
+type RouteErrorLike = {
+  fields?: unknown;
+  message?: unknown;
+  name?: unknown;
+  status?: unknown;
+};
+
+function isRouteErrorLike(value: unknown): value is RouteErrorLike {
+  return typeof value === 'object' && value !== null;
+}
+
+function getErrorStatus(value: unknown): number {
+  if (isRouteErrorLike(value) && typeof value.status === 'number') {
+    return value.status;
+  }
+
+  return 500;
+}
+
+function getErrorMessage(value: unknown): string {
+  if (value instanceof Error) {
+    return value.message;
+  }
+
+  if (isRouteErrorLike(value) && typeof value.message === 'string') {
+    return value.message;
+  }
+
+  return 'An error occurred during the request.';
+}
+
+function getErrorName(value: unknown): string {
+  if (value instanceof Error) {
+    return value.name;
+  }
+
+  if (isRouteErrorLike(value) && typeof value.name === 'string') {
+    return value.name;
+  }
+
+  return 'Error';
+}
+
+function getErrorBody(value: unknown) {
+  const status = getErrorStatus(value);
+  const body: {
+    fields?: unknown;
+    message: string;
+    name: string;
+    status: number;
+  } = {
+    message: getErrorMessage(value),
+    name: getErrorName(value),
+    status,
+  };
+
+  if (isRouteErrorLike(value) && value.fields !== undefined) {
+    body.fields = value.fields;
+  }
+
+  return body;
+}
+
+const models: TsoaRoute.Models = {
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}
+      "{{@key}}": {{{json this}}},
+      {{/each}}
+    },
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  {{/each}}
+};
+
+export function RegisterRoutes(router: Router, opts?: { validation?: Tsoa.ValidationContext }) {
+  const additionalProps: AdditionalProps = {
+    ...{{{json minimalSwaggerConfig}}},
+    validation: opts?.validation,
+  };
+  const templateService = new KoaTemplateService(models, additionalProps);
+  {{#each controllers}}
+  {{#each actions}}
+
+  const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+    {{#each parameters}}
+    {{@key}}: {{{json this}}},
+    {{/each}}
+  };
+
+  router.{{method}}(
+    '{{fullPath}}',
+    ...(fetchMiddlewares<Middleware>({{../name}})),
+    ...(fetchMiddlewares<Middleware>({{../name}}.prototype.{{name}})),
+    async function {{../name}}_{{name}}(context: Context, next: Next) {
+      try {
+        const validatedArgs = templateService.getValidatedArgs({
+          args: args{{../name}}_{{name}},
+          controllerClass: {{../name}},
+          methodName: '{{name}}',
+          context,
+          next,
+        });
+
+        const controller = new {{../name}}();
+        return templateService.apiHandler({
+          methodName: '{{name}}',
+          controller,
+          context,
+          validatedArgs,
+          successStatus: {{successStatus}},
+        });
+      } catch (error) {
+        const body = getErrorBody(error);
+        context.status = body.status;
+        context.body = body;
+        return;
+      }
+    },
+  );
+  {{/each}}
+  {{/each}}
+}

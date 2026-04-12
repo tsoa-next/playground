@@ -1,0 +1,61 @@
+{
+  "name": "tsoa-next-playground",
+  "version": "1.0.0",
+  "description": "A multi-server tsoa-next playground with generated specs, routes, and Playwright API coverage.",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "generate:clean": "node -e \"const fs=require('node:fs'); fs.rmSync('src/server', { force: true, recursive: true }); fs.rmSync('src/specs', { force: true, recursive: true });\"",
+    "generate:express": "tsoa spec-and-routes -c tsoa.express.yaml",
+    "generate:koa": "tsoa spec-and-routes -c tsoa.koa.yaml",
+    "generate:hapi": "tsoa spec-and-routes -c tsoa.hapi.yaml",
+    "generate": "npm run generate:clean && npm run generate:express && npm run generate:koa && npm run generate:hapi",
+    "typecheck": "tsc --noEmit",
+    "build": "node -e \"require('node:fs').rmSync('dist', { force: true, recursive: true })\" && npm run generate && tsc -p tsconfig.json",
+    "serve:express": "tsx src/servers/express/server.ts",
+    "serve:koa": "tsx src/servers/koa/server.ts",
+    "serve:hapi": "tsx src/servers/hapi/server.ts",
+    "test:api": "npm run generate && playwright test -c playwrightConfig.ts",
+    "test": "npm run test:api"
+  },
+  "keywords": [
+    "express",
+    "hapi",
+    "koa",
+    "openapi",
+    "playwright",
+    "tsoa-next",
+    "typescript"
+  ],
+  "author": "Vanna DiCatania <vanna@dicatania.me> https://dicatania.me",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/hapi": "^21.4.4",
+    "@koa/router": "^15.4.0",
+    "express": "^5.1.0",
+    "fp-ts": "^2.16.11",
+    "io-ts": "^2.2.22",
+    "joi": "^18.1.2",
+    "koa": "^3.2.0",
+    "koa-bodyparser": "^4.4.1",
+    "superstruct": "^2.0.2",
+    "swagger-ui-dist": "^5.32.2",
+    "yaml": "^2.8.3",
+    "yup": "^1.7.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/express": "^5.0.5",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/node": "^25.6.0",
+    "tsoa-next": "^8.0.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

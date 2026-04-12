@@ -1,0 +1,27 @@
+---
+entryFile: "./src/tsoaEntry.ts"
+controllerPathGlobs:
+  - "./src/controllers/*Controller.ts"
+  - "./src/controllers/hapi/*Controller.ts"
+noImplicitAdditionalProperties: throw-on-extras
+tsconfig: "./tsconfig.json"
+spec:
+  outputDirectory: "./src/specs"
+  specFileBaseName: "hapiApi"
+  specVersion: 3.1
+  yaml: true
+  name: "tsoa-next Playground API"
+  description: "Reference controllers inspired by tsoa-next upstream fixtures, exposed through Express, Koa, and Hapi."
+  version: "1.0.0"
+  schemes:
+    - "http"
+  servers:
+    - "127.0.0.1:3103"
+  basePath: "/v1"
+  operationIdTemplate: "{{controllerName}}_{{titleCase method.name}}"
+routes:
+  routesDir: "./src/server/hapi/routes"
+  routesFileName: "controllerGen.ts"
+  middleware: "hapi"
+  middlewareTemplate: "./templates/hapiRoutes.hbs"
+  basePath: "/v1"

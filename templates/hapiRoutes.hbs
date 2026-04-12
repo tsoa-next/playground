@@ -1,0 +1,148 @@
+/* tslint:disable */
+/* eslint-disable */
+import type { AdditionalProps, Tsoa, TsoaRoute } from 'tsoa-next';
+import { fetchMiddlewares, HapiTemplateService } from 'tsoa-next';
+{{#each controllers}}
+import { {{name}} } from '{{modulePath}}';
+{{/each}}
+import { boomify, isBoom } from '@hapi/boom';
+import type { Request, ResponseToolkit, RouteOptionsPreAllOptions, Server } from '@hapi/hapi';
+
+type RouteErrorLike = {
+  fields?: unknown;
+  message?: unknown;
+  name?: unknown;
+  status?: unknown;
+};
+
+function isRouteErrorLike(value: unknown): value is RouteErrorLike {
+  return typeof value === 'object' && value !== null;
+}
+
+function getErrorStatus(value: unknown): number {
+  if (isRouteErrorLike(value) && typeof value.status === 'number') {
+    return value.status;
+  }
+
+  return 500;
+}
+
+function getErrorMessage(value: unknown): string {
+  if (value instanceof Error) {
+    return value.message;
+  }
+
+  if (isRouteErrorLike(value) && typeof value.message === 'string') {
+    return value.message;
+  }
+
+  return 'An error occurred during the request.';
+}
+
+function getErrorName(value: unknown): string {
+  if (value instanceof Error) {
+    return value.name;
+  }
+
+  if (isRouteErrorLike(value) && typeof value.name === 'string') {
+    return value.name;
+  }
+
+  return 'Error';
+}
+
+function toBoomError(error: unknown) {
+  if (isBoom(error)) {
+    return error;
+  }
+
+  const status = getErrorStatus(error);
+  const message = getErrorMessage(error);
+  const baseError = error instanceof Error ? error : new Error(message);
+  const boomError = boomify(baseError, { statusCode: status });
+
+  boomError.output.statusCode = status;
+  Reflect.set(boomError.output.payload, 'name', getErrorName(error));
+  Reflect.set(boomError.output.payload, 'message', message);
+
+  if (isRouteErrorLike(error) && error.fields !== undefined) {
+    Reflect.set(boomError.output.payload, 'fields', error.fields);
+  }
+
+  return boomError;
+}
+
+const models: TsoaRoute.Models = {
+  {{#each models}}
+  "{{@key}}": {
+    {{#if enums}}
+    "dataType": "refEnum",
+    "enums": {{{json enums}}},
+    {{/if}}
+    {{#if properties}}
+    "dataType": "refObject",
+    "properties": {
+      {{#each properties}}
+      "{{@key}}": {{{json this}}},
+      {{/each}}
+    },
+    "additionalProperties": {{{json additionalProperties}}},
+    {{/if}}
+    {{#if type}}
+    "dataType": "refAlias",
+    "type": {{{json type}}},
+    {{/if}}
+  },
+  {{/each}}
+};
+
+export function RegisterRoutes(server: Server, opts?: { validation?: Tsoa.ValidationContext }) {
+  const additionalProps: AdditionalProps = {
+    ...{{{json minimalSwaggerConfig}}},
+    validation: opts?.validation,
+  };
+  const templateService = new HapiTemplateService(models, additionalProps, { boomify, isBoom });
+  {{#each controllers}}
+  {{#each actions}}
+
+  const args{{../name}}_{{name}}: Record<string, TsoaRoute.ParameterSchema> = {
+    {{#each parameters}}
+    {{@key}}: {{{json this}}},
+    {{/each}}
+  };
+
+  server.route({
+    method: '{{method}}',
+    path: '{{fullPath}}',
+    options: {
+      pre: [
+        ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}})),
+        ...(fetchMiddlewares<RouteOptionsPreAllOptions>({{../name}}.prototype.{{name}})),
+      ],
+      handler: async function {{../name}}_{{name}}(request: Request, h: ResponseToolkit) {
+        try {
+          const validatedArgs = templateService.getValidatedArgs({
+            args: args{{../name}}_{{name}},
+            controllerClass: {{../name}},
+            methodName: '{{name}}',
+            request,
+            h,
+          });
+
+          const controller = new {{../name}}();
+          return templateService.apiHandler({
+            methodName: '{{name}}',
+            controller,
+            h,
+            validatedArgs,
+            successStatus: {{successStatus}},
+          });
+        } catch (error) {
+          throw toBoomError(error);
+        }
+      },
+    },
+  });
+  {{/each}}
+  {{/each}}
+}

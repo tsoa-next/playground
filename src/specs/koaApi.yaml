@@ -1,0 +1,671 @@
+openapi: 3.1.0
+components:
+  examples: {}
+  headers: {}
+  parameters: {}
+  requestBodies: {}
+  responses: {}
+  schemas:
+    CarrierCode:
+      type: string
+      enum:
+        - postal-priority
+        - city-bike
+    ServiceLevelCode:
+      type: string
+      enum:
+        - standard
+        - expedited
+    SupportedCurrencyCode:
+      type: string
+      enum:
+        - USD
+        - EUR
+    ShippingQuoteView:
+      properties:
+        quoteId:
+          type: string
+        carrierCode:
+          $ref: "#/components/schemas/CarrierCode"
+        serviceLevel:
+          $ref: "#/components/schemas/ServiceLevelCode"
+        destinationLabel:
+          type: string
+        currency:
+          $ref: "#/components/schemas/SupportedCurrencyCode"
+        estimatedBusinessDays:
+          type: number
+          format: double
+        quotedAmount:
+          type: number
+          format: double
+      required:
+        - quoteId
+        - carrierCode
+        - serviceLevel
+        - destinationLabel
+        - currency
+        - estimatedBusinessDays
+        - quotedAmount
+      type: object
+      additionalProperties: false
+    ShippingQuoteRequestQuery:
+      properties:
+        destinationCountryCode:
+          type: string
+        destinationPostalCode:
+          type: string
+        parcels:
+          type: number
+          format: double
+        expedited:
+          type: boolean
+        market:
+          type: string
+          enum:
+            - us
+            - eu
+      required:
+        - destinationCountryCode
+        - destinationPostalCode
+        - parcels
+        - expedited
+        - market
+      type: object
+      additionalProperties: false
+    MoneyAmount:
+      properties:
+        currency:
+          $ref: "#/components/schemas/SupportedCurrencyCode"
+        amount:
+          type: number
+          format: double
+      required:
+        - currency
+        - amount
+      type: object
+      additionalProperties: false
+    OrderDraftReceipt:
+      properties:
+        draftId:
+          type: string
+        customerId:
+          type: string
+        shippingPostalCode:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+          nullable: false
+        lineCount:
+          type: number
+          format: double
+        subtotal:
+          $ref: "#/components/schemas/MoneyAmount"
+        notes:
+          type: string
+      required:
+        - draftId
+        - customerId
+        - shippingPostalCode
+        - status
+        - lineCount
+        - subtotal
+      type: object
+      additionalProperties: false
+    OrderLineInput:
+      properties:
+        sku:
+          type: string
+        quantity:
+          type: number
+          format: double
+        unitPrice:
+          type: number
+          format: double
+      required:
+        - sku
+        - quantity
+        - unitPrice
+      type: object
+      additionalProperties: false
+    CreateOrderDraftRequest:
+      properties:
+        customerId:
+          type: string
+        requestedCurrency:
+          $ref: "#/components/schemas/SupportedCurrencyCode"
+        shippingPostalCode:
+          type: string
+        notes:
+          type: string
+        lines:
+          items:
+            $ref: "#/components/schemas/OrderLineInput"
+          type: array
+      required:
+        - customerId
+        - requestedCurrency
+        - shippingPostalCode
+        - lines
+      type: object
+      additionalProperties: false
+    DraftPricingView:
+      properties:
+        currency:
+          $ref: "#/components/schemas/SupportedCurrencyCode"
+        subtotal:
+          $ref: "#/components/schemas/MoneyAmount"
+        tax:
+          $ref: "#/components/schemas/MoneyAmount"
+        grandTotal:
+          $ref: "#/components/schemas/MoneyAmount"
+      required:
+        - currency
+        - subtotal
+        - tax
+        - grandTotal
+      type: object
+      additionalProperties: false
+    ValidationLifecycleStatus:
+      type: string
+      enum:
+        - active
+        - disabled
+    TaggedEntityPayload:
+      properties:
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/ValidationLifecycleStatus"
+        tags:
+          items:
+            type: string
+          type: array
+      required:
+        - name
+        - status
+        - tags
+      type: object
+      additionalProperties: false
+    AuditedTaggedEntityPayload:
+      properties:
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/ValidationLifecycleStatus"
+        tags:
+          items:
+            type: string
+          type: array
+        auditId:
+          type: number
+          format: double
+      required:
+        - name
+        - status
+        - tags
+        - auditId
+      type: object
+      additionalProperties: false
+    Branded_number.PositiveFloatBrand_:
+      allOf:
+        - type: number
+          format: double
+    Branded_number.IntBrand_:
+      allOf:
+        - type: number
+          format: double
+    Branded_Branded_number.IntBrand_.PositiveIntegerBrand_:
+      allOf:
+        - $ref: "#/components/schemas/Branded_number.IntBrand_"
+    WagerSubmission:
+      properties:
+        outcome:
+          type: number
+          format: double
+        amount:
+          type: number
+          format: double
+      required:
+        - outcome
+        - amount
+      type: object
+    MarketCode:
+      type: string
+      enum:
+        - us
+        - eu
+    CatalogItemView:
+      properties:
+        sku:
+          type: string
+        title:
+          type: string
+        market:
+          $ref: "#/components/schemas/MarketCode"
+        warehouse:
+          type: string
+        merchandisingLabel:
+          type: string
+        availableUnits:
+          type: number
+          format: double
+        unitPrice:
+          $ref: "#/components/schemas/MoneyAmount"
+      required:
+        - sku
+        - title
+        - market
+        - warehouse
+        - merchandisingLabel
+        - availableUnits
+        - unitPrice
+      type: object
+      additionalProperties: false
+    FeaturedCatalogEnvelope:
+      properties:
+        audience:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        items:
+          items:
+            $ref: "#/components/schemas/CatalogItemView"
+          type: array
+      required:
+        - audience
+        - generatedAt
+        - items
+      type: object
+      additionalProperties: false
+    MiddlewareTraceView:
+      properties:
+        events:
+          items:
+            type: string
+          type: array
+        framework:
+          type: string
+      required:
+        - events
+        - framework
+      type: object
+      additionalProperties: false
+  securitySchemes: {}
+info:
+  title: tsoa-next Playground API
+  version: 1.0.0
+  description: Reference controllers inspired by tsoa-next upstream fixtures,
+    exposed through Express, Koa, and Hapi.
+  license:
+    name: MIT
+  contact:
+    name: Vanna DiCatania
+    email: vanna@dicatania.me
+paths:
+  /shipping/quote:
+    get:
+      operationId: ShippingQuoteController_GetShippingQuote
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingQuoteView"
+      description: Calculates a delivery quote from grouped query string fields.
+      tags:
+        - shipping
+      security: []
+      parameters:
+        - in: query
+          name: destinationCountryCode
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: destinationPostalCode
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: parcels
+          required: true
+          schema:
+            format: double
+            type: number
+        - in: query
+          name: expedited
+          required: true
+          schema:
+            type: boolean
+        - in: query
+          name: market
+          required: true
+          schema:
+            type: string
+            enum:
+              - us
+              - eu
+  /shipping/carriers/{carrierCode}/quote:
+    get:
+      operationId: ShippingQuoteController_GetCarrierShippingQuote
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingQuoteView"
+      description: Calculates the same quote while allowing the client to force a
+        specific carrier lane.
+      tags:
+        - shipping
+      security: []
+      parameters:
+        - in: path
+          name: carrierCode
+          required: true
+          schema:
+            $ref: "#/components/schemas/CarrierCode"
+        - in: query
+          name: destinationCountryCode
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: destinationPostalCode
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: parcels
+          required: true
+          schema:
+            format: double
+            type: number
+        - in: query
+          name: expedited
+          required: true
+          schema:
+            type: boolean
+        - in: query
+          name: market
+          required: true
+          schema:
+            type: string
+            enum:
+              - us
+              - eu
+  /order-drafts:
+    post:
+      operationId: OrderDraftController_CreateOrderDraft
+      responses:
+        "201":
+          description: Draft order staged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderDraftReceipt"
+      description: Stages a draft order so a client can review the payload before
+        final submission.
+      tags:
+        - orders
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderDraftRequest"
+  /order-drafts/{draftId}:
+    get:
+      operationId: OrderDraftController_GetOrderDraft
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderDraftReceipt"
+      description: Retrieves a staged draft order by its identifier.
+      tags:
+        - orders
+      security: []
+      parameters:
+        - in: path
+          name: draftId
+          required: true
+          schema:
+            type: string
+  /order-drafts/pricing:
+    post:
+      operationId: OrderDraftController_PriceOrderDraft
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DraftPricingView"
+      description: Reprices a draft payload using a caller-selected output currency.
+      tags:
+        - orders
+      security: []
+      parameters:
+        - in: query
+          name: currency
+          required: false
+          schema:
+            $ref: "#/components/schemas/SupportedCurrencyCode"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderDraftRequest"
+  /validation/external/zod:
+    post:
+      operationId: ExternalValidationShowcaseController_ValidateWithZod
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaggedEntityPayload"
+      description: Validates a tagged entity payload with Zod.
+      tags:
+        - validation
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TaggedEntityPayload"
+              x-schema-validator: zod
+  /validation/external/joi:
+    post:
+      operationId: ExternalValidationShowcaseController_ValidateWithJoi
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditedTaggedEntityPayload"
+      description: Validates an audited payload with Joi.
+      tags:
+        - validation
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/AuditedTaggedEntityPayload"
+              x-schema-validator: joi
+  /validation/external/yup:
+    post:
+      operationId: ExternalValidationShowcaseController_ValidateWithYup
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaggedEntityPayload"
+      description: Validates a tagged entity payload with Yup using the object-form
+        configuration.
+      tags:
+        - validation
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TaggedEntityPayload"
+              x-schema-validator: yup
+  /validation/external/superstruct:
+    post:
+      operationId: ExternalValidationShowcaseController_ValidateWithSuperstruct
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditedTaggedEntityPayload"
+      description: Validates an audited payload with Superstruct.
+      tags:
+        - validation
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/AuditedTaggedEntityPayload"
+              x-schema-validator: superstruct
+  /validation/external/ioTs:
+    post:
+      operationId: ExternalValidationShowcaseController_ValidateWithIoTs
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WagerSubmission"
+      description: Validates a wager submission with io-ts branded codecs.
+      tags:
+        - validation
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/WagerSubmission"
+              x-schema-validator: io-ts
+  /catalog/featured:
+    get:
+      operationId: CatalogLookupController_GetFeaturedCatalog
+      responses:
+        "200":
+          description: Featured catalog cards loaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeaturedCatalogEnvelope"
+              examples:
+                Example 1:
+                  value:
+                    audience: retail
+                    generatedAt: 2026-04-11T15:00:00.000Z
+                    items:
+                      - availableUnits: 42
+                        market: us
+                        merchandisingLabel: new-arrival
+                        sku: SKU-ALPHA-1
+                        title: Transit Backpack
+                        unitPrice:
+                          amount: 128
+                          currency: USD
+                        warehouse: north-hub
+      description: Returns a curated merchandising strip for a known audience segment.
+      tags:
+        - catalog
+      security: []
+      parameters:
+        - in: query
+          name: audience
+          required: false
+          schema:
+            default: retail
+            type: string
+  /catalog/{sku}:
+    get:
+      operationId: CatalogLookupController_GetCatalogItem
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogItemView"
+      description: Resolves one SKU while allowing the caller to pin market context
+        and warehouse context.
+      tags:
+        - catalog
+      security: []
+      parameters:
+        - in: path
+          name: sku
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: x-market
+          required: false
+          schema:
+            $ref: "#/components/schemas/MarketCode"
+        - in: query
+          name: warehouse
+          required: false
+          schema:
+            type: string
+  /middleware/koa/trace:
+    get:
+      operationId: KoaMiddlewareShowcaseController_GetTrace
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MiddlewareTraceView"
+      description: Runs controller-level and method-level Koa middleware before
+        returning the trace.
+      tags:
+        - middleware
+      security: []
+      parameters: []
+servers:
+  - url: http://127.0.0.1:3102/v1
