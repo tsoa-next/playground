@@ -261,6 +261,94 @@ test('serves the spec explorer index and Swagger UI shell', async ({ request }, 
   expect(swaggerBundleBody).toContain('SwaggerUIBundle')
 })
 
+test('summarizes the SpecPath showcase targets', async ({ request }) => {
+  const response = await request.get('/v1/specPath')
+  const body = await response.json()
+
+  expect(response.ok()).toBeTruthy()
+  expect(body.availableSpecTargets).toContain('spec')
+  expect(body.availableDocsTargets).toContain('swaggerUi')
+  expect(body.state.customStringCalls).toBe(0)
+})
+
+test('serves the built-in SpecPath JSON and YAML targets', async ({ request }) => {
+  const jsonResponse = await request.get('/v1/specPath/spec')
+  const jsonBody = await jsonResponse.json()
+
+  expect(jsonResponse.ok()).toBeTruthy()
+  expect(jsonResponse.headers()['content-type']).toContain('application/json')
+  expect(jsonBody.info.title).toBe('tsoa-next Playground API')
+
+  const yamlResponse = await request.get('/v1/specPath/yaml')
+  const yamlBody = await yamlResponse.text()
+
+  expect(yamlResponse.ok()).toBeTruthy()
+  expect(yamlResponse.headers()['content-type']).toContain('application/yaml')
+  expect(yamlBody).toContain('title: tsoa-next Playground API')
+})
+
+test('caches the custom SpecPath string handler', async ({ request }) => {
+  await request.post('/v1/specPath/state/reset')
+
+  const firstResponse = await request.get('/v1/specPath/customString')
+  const secondResponse = await request.get('/v1/specPath/customString')
+  const stateResponse = await request.get('/v1/specPath/state')
+  const stateBody = await stateResponse.json()
+
+  expect(firstResponse.ok()).toBeTruthy()
+  expect(await firstResponse.text()).toContain('custom:tsoa-next Playground API')
+  expect(secondResponse.ok()).toBeTruthy()
+  expect(await secondResponse.text()).toContain('custom:tsoa-next Playground API')
+  expect(stateBody.customStringCalls).toBe(1)
+})
+
+test('exposes cached and uncached custom SpecPath stream handlers', async ({ request }) => {
+  await request.post('/v1/specPath/state/reset')
+
+  const firstStreamResponse = await request.get('/v1/specPath/customStream')
+  const secondStreamResponse = await request.get('/v1/specPath/customStream')
+  const firstCachedResponse = await request.get('/v1/specPath/customCachedStream')
+  const secondCachedResponse = await request.get('/v1/specPath/customCachedStream')
+  const stateResponse = await request.get('/v1/specPath/state')
+  const stateBody = await stateResponse.json()
+
+  expect(firstStreamResponse.ok()).toBeTruthy()
+  expect(await firstStreamResponse.text()).toContain('streamed custom spec')
+  expect(secondStreamResponse.ok()).toBeTruthy()
+  expect(await secondStreamResponse.text()).toContain('streamed custom spec')
+  expect(firstCachedResponse.ok()).toBeTruthy()
+  expect(await firstCachedResponse.text()).toContain('streamed custom spec')
+  expect(secondCachedResponse.ok()).toBeTruthy()
+  expect(await secondCachedResponse.text()).toContain('streamed custom spec')
+  expect(stateBody.customStreamCalls).toBe(3)
+  expect(stateBody.customCacheGets).toBe(2)
+  expect(stateBody.customCacheSets).toBe(1)
+})
+
+test('serves the built-in SpecPath UI shells', async ({ request }) => {
+  const swaggerResponse = await request.get('/v1/specPath/swaggerUi')
+  const swaggerBody = await swaggerResponse.text()
+
+  expect(swaggerResponse.ok()).toBeTruthy()
+  expect(swaggerResponse.headers()['content-type']).toContain('text/html')
+  expect(swaggerBody).toContain('SwaggerUIBundle')
+  expect(swaggerBody).toContain('tsoa-next Playground API')
+
+  const redocResponse = await request.get('/v1/specPath/redocUi')
+  const redocBody = await redocResponse.text()
+
+  expect(redocResponse.ok()).toBeTruthy()
+  expect(redocBody).toContain('Redoc.init')
+  expect(redocBody).toContain('tsoa-next Playground API')
+
+  const rapidocResponse = await request.get('/v1/specPath/rapidocUi')
+  const rapidocBody = await rapidocResponse.text()
+
+  expect(rapidocResponse.ok()).toBeTruthy()
+  expect(rapidocBody).toContain('<rapi-doc')
+  expect(rapidocBody).toContain('tsoa-next Playground API')
+})
+
 test('shows express middleware order on the express server', async ({ request }, testInfo) => {
   test.skip(testInfo.project.name !== 'express', 'Express middleware showcase is only generated for the Express server.')
 

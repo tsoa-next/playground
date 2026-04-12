@@ -1,7 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AdditionalProps, Tsoa, TsoaRoute } from 'tsoa-next';
-import { fetchMiddlewares, KoaTemplateService } from 'tsoa-next';
+import { createOpenApiSpecGenerator, fetchMiddlewares, fetchSpecPaths, KoaTemplateService, normalisePath, resolveSpecPathResponse } from 'tsoa-next';
+import { SpecPathShowcaseController } from './../../../controllers/specPathShowcaseController';
 import { ShippingQuoteController } from './../../../controllers/shippingQuoteController';
 import { OrderDraftController } from './../../../controllers/orderDraftController';
 import { ExternalValidationShowcaseController } from './../../../controllers/externalValidationShowcaseController';
@@ -74,6 +75,25 @@ function getErrorBody(value: unknown) {
 }
 
 const models: TsoaRoute.Models = {
+  "SpecPathShowcaseStateView": {
+    "dataType": "refObject",
+    "properties": {
+      "customCacheGets": {"dataType":"double","required":true},
+      "customCacheSets": {"dataType":"double","required":true},
+      "customStreamCalls": {"dataType":"double","required":true},
+      "customStringCalls": {"dataType":"double","required":true},
+    },
+    "additionalProperties": false,
+  },
+  "SpecPathShowcaseStatusView": {
+    "dataType": "refObject",
+    "properties": {
+      "availableDocsTargets": {"dataType":"array","array":{"dataType":"string"},"required":true},
+      "availableSpecTargets": {"dataType":"array","array":{"dataType":"string"},"required":true},
+      "state": {"ref":"SpecPathShowcaseStateView","required":true},
+    },
+    "additionalProperties": false,
+  },
   "CarrierCode": {
     "dataType": "refAlias",
     "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["postal-priority"]},{"dataType":"enum","enums":["city-bike"]}],"validators":{}},
@@ -242,6 +262,110 @@ export function RegisterRoutes(router: Router, opts?: { validation?: Tsoa.Valida
     validation: opts?.validation,
   };
   const templateService = new KoaTemplateService(models, additionalProps);
+  const specGenerator = createOpenApiSpecGenerator({"spec":{"outputDirectory":"./src/specs","specFileBaseName":"koaApi","specVersion":3.1,"yaml":true,"name":"tsoa-next Playground API","description":"Reference controllers inspired by tsoa-next upstream fixtures, exposed through Express, Koa, and Hapi.","version":"1.0.0","schemes":["http"],"servers":["127.0.0.1:3102"],"basePath":"/v1","operationIdTemplate":"{{controllerName}}_{{titleCase method.name}}","license":"MIT","contact":{"name":"Vanna DiCatania","email":"vanna@dicatania.me"},"noImplicitAdditionalProperties":"throw-on-extras","entryFile":"./src/tsoaEntry.ts","controllerPathGlobs":["./src/controllers/*Controller.ts","./src/controllers/koa/*Controller.ts"]}});
+  const registeredGetPaths = new Set<string>(["/v1/specPath","/v1/specPath/state","/v1/shipping/quote","/v1/shipping/carriers/:carrierCode/quote","/v1/order-drafts/:draftId","/v1/catalog/featured","/v1/catalog/:sku","/v1/middleware/koa/trace"]);
+
+  const argsSpecPathShowcaseController_getSpecPathStatus: Record<string, TsoaRoute.ParameterSchema> = {
+  };
+
+  router.get(
+    '/v1/specPath',
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController)),
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController.prototype.getSpecPathStatus)),
+    async function SpecPathShowcaseController_getSpecPathStatus(context: Context, next: Next) {
+      try {
+        const validatedArgs = templateService.getValidatedArgs({
+          args: argsSpecPathShowcaseController_getSpecPathStatus,
+          controllerClass: SpecPathShowcaseController,
+          methodName: 'getSpecPathStatus',
+          context,
+          next,
+        });
+
+        const controller = new SpecPathShowcaseController();
+        return templateService.apiHandler({
+          methodName: 'getSpecPathStatus',
+          controller,
+          context,
+          validatedArgs,
+          successStatus: undefined,
+        });
+      } catch (error) {
+        const body = getErrorBody(error);
+        context.status = body.status;
+        context.body = body;
+        return;
+      }
+    },
+  );
+
+  const argsSpecPathShowcaseController_getSpecPathState: Record<string, TsoaRoute.ParameterSchema> = {
+  };
+
+  router.get(
+    '/v1/specPath/state',
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController)),
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController.prototype.getSpecPathState)),
+    async function SpecPathShowcaseController_getSpecPathState(context: Context, next: Next) {
+      try {
+        const validatedArgs = templateService.getValidatedArgs({
+          args: argsSpecPathShowcaseController_getSpecPathState,
+          controllerClass: SpecPathShowcaseController,
+          methodName: 'getSpecPathState',
+          context,
+          next,
+        });
+
+        const controller = new SpecPathShowcaseController();
+        return templateService.apiHandler({
+          methodName: 'getSpecPathState',
+          controller,
+          context,
+          validatedArgs,
+          successStatus: undefined,
+        });
+      } catch (error) {
+        const body = getErrorBody(error);
+        context.status = body.status;
+        context.body = body;
+        return;
+      }
+    },
+  );
+
+  const argsSpecPathShowcaseController_resetState: Record<string, TsoaRoute.ParameterSchema> = {
+  };
+
+  router.post(
+    '/v1/specPath/state/reset',
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController)),
+    ...(fetchMiddlewares<Middleware>(SpecPathShowcaseController.prototype.resetState)),
+    async function SpecPathShowcaseController_resetState(context: Context, next: Next) {
+      try {
+        const validatedArgs = templateService.getValidatedArgs({
+          args: argsSpecPathShowcaseController_resetState,
+          controllerClass: SpecPathShowcaseController,
+          methodName: 'resetState',
+          context,
+          next,
+        });
+
+        const controller = new SpecPathShowcaseController();
+        return templateService.apiHandler({
+          methodName: 'resetState',
+          controller,
+          context,
+          validatedArgs,
+          successStatus: undefined,
+        });
+      } catch (error) {
+        const body = getErrorBody(error);
+        context.status = body.status;
+        context.body = body;
+        return;
+      }
+    },
+  );
 
   const argsShippingQuoteController_getShippingQuote: Record<string, TsoaRoute.ParameterSchema> = {
     request: {"in":"queries","name":"request","parameterIndex":0,"required":true,"ref":"ShippingQuoteRequestQuery"},
@@ -700,4 +824,226 @@ export function RegisterRoutes(router: Router, opts?: { validation?: Tsoa.Valida
       }
     },
   );
+  for (const specPath of fetchSpecPaths(SpecPathShowcaseController)) {
+    const specFullPath = normalisePath('/v1/specPath' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for SpecPathShowcaseController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function SpecPathShowcaseController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: SpecPathShowcaseController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
+  for (const specPath of fetchSpecPaths(ShippingQuoteController)) {
+    const specFullPath = normalisePath('/v1/shipping' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for ShippingQuoteController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function ShippingQuoteController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: ShippingQuoteController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
+  for (const specPath of fetchSpecPaths(OrderDraftController)) {
+    const specFullPath = normalisePath('/v1/order-drafts' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for OrderDraftController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function OrderDraftController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: OrderDraftController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
+  for (const specPath of fetchSpecPaths(ExternalValidationShowcaseController)) {
+    const specFullPath = normalisePath('/v1/validation/external' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for ExternalValidationShowcaseController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function ExternalValidationShowcaseController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: ExternalValidationShowcaseController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
+  for (const specPath of fetchSpecPaths(CatalogLookupController)) {
+    const specFullPath = normalisePath('/v1/catalog' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for CatalogLookupController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function CatalogLookupController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: CatalogLookupController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
+  for (const specPath of fetchSpecPaths(KoaMiddlewareShowcaseController)) {
+    const specFullPath = normalisePath('/v1/middleware/koa' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for KoaMiddlewareShowcaseController at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function KoaMiddlewareShowcaseController_specPath(context: Context, _next: Next) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: KoaMiddlewareShowcaseController,
+            fullPath: specFullPath,
+            request: context.request,
+            response: context.response,
+            runtime: 'koa',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            context.type = specResponse.contentType;
+          }
+
+          context.status = 200;
+          context.body = specResponse.body;
+          return;
+        } catch (error) {
+          const body = getErrorBody(error);
+          context.status = body.status;
+          context.body = body;
+          return;
+        }
+      },
+    );
+  }
 }

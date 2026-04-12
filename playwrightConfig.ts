@@ -27,7 +27,7 @@ export default defineConfig({
     env: {
       PORT: String(framework.port),
     },
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     stderr: 'pipe',
     stdout: 'pipe',
     timeout: 120_000,

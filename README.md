@@ -24,6 +24,7 @@ This repo is intentionally built as a broad exploration surface rather than a mi
   - `yup`
   - `superstruct`
   - `io-ts`
+- `SpecPath` examples for generated spec serving, built-in docs UIs, and custom response handlers.
 - `tsoa` CLI generation through three root configs:
   - [tsoa.express.yaml](./tsoa.express.yaml)
   - [tsoa.koa.yaml](./tsoa.koa.yaml)
@@ -60,11 +61,65 @@ npm run serve:koa
 npm run serve:hapi
 ```
 
-Then explore the generated spec surfaces in your browser:
+## 🌐 Server Guide
 
-- `http://127.0.0.1:3101/docs`
-- `http://127.0.0.1:3102/docs`
-- `http://127.0.0.1:3103/docs`
+Run exactly one of these when you want to explore a single framework locally:
+
+- `npm run serve:express`
+  Base URL: `http://127.0.0.1:3101`
+- `npm run serve:koa`
+  Base URL: `http://127.0.0.1:3102`
+- `npm run serve:hapi`
+  Base URL: `http://127.0.0.1:3103`
+
+Each server mounts all shared controllers plus its own framework-specific middleware controller.
+
+### Shared spec and docs endpoints on every server
+
+Once a server is running, these endpoints work on all three frameworks:
+
+- `/docs`
+  Visual docs landing page for that server target.
+- `/docs/swagger`
+  Swagger UI mounted by the shared spec explorer layer.
+- `/spec/openapi.yaml`
+  The generated OpenAPI YAML for that framework.
+- `/spec/openapi.json`
+  The generated OpenAPI JSON for that framework.
+- `/v1/specPath`
+  Summary endpoint for the controller-local `@SpecPath(...)` showcase.
+- `/v1/specPath/spec`
+  Built-in JSON `SpecPath` target.
+- `/v1/specPath/yaml`
+  Built-in YAML `SpecPath` target.
+- `/v1/specPath/customString`
+  Custom string-producing `SpecPath` handler with in-memory caching.
+- `/v1/specPath/customStream`
+  Custom uncached stream-producing `SpecPath` handler.
+- `/v1/specPath/customCachedStream`
+  Custom stream-producing `SpecPath` handler backed by a custom cache.
+- `/v1/specPath/swaggerUi`
+  Built-in Swagger UI `SpecPath` target.
+- `/v1/specPath/redocUi`
+  Built-in Redoc `SpecPath` target.
+- `/v1/specPath/rapidocUi`
+  Built-in RapiDoc `SpecPath` target.
+
+### Framework-specific middleware endpoints
+
+These only work on the matching server because the middleware decorators and runtime types differ by framework:
+
+- Express only: `http://127.0.0.1:3101/v1/middleware/express/trace`
+- Koa only: `http://127.0.0.1:3102/v1/middleware/koa/trace`
+- Hapi only: `http://127.0.0.1:3103/v1/middleware/hapi/trace`
+
+### Generated spec files by server
+
+The raw `/spec/openapi.*` endpoints map to different generated files depending on which server you start:
+
+- Express serves `src/specs/expressApi.yaml`
+- Koa serves `src/specs/koaApi.yaml`
+- Hapi serves `src/specs/hapiApi.yaml`
 
 ## 🛠️ Useful Scripts
 
@@ -116,6 +171,7 @@ These are generated into all three server variants:
 - [shippingQuoteController.ts](./src/controllers/shippingQuoteController.ts)
 - [orderDraftController.ts](./src/controllers/orderDraftController.ts)
 - [externalValidationShowcaseController.ts](./src/controllers/externalValidationShowcaseController.ts)
+- [specPathShowcaseController.ts](./src/controllers/specPathShowcaseController.ts)
 
 They demonstrate:
 
@@ -124,6 +180,7 @@ They demonstrate:
 - body validation and response typing
 - use-case-oriented controller documentation
 - external schema validation with `@Validate(...)`
+- generated spec publishing with `@SpecPath(...)`
 
 ### 3. Inspect the framework-specific middleware controllers
 
@@ -150,7 +207,19 @@ External validation schemas and payload types live in:
 
 That file is the central place to compare the shape and ergonomics of each supported external validator.
 
-### 5. Inspect the custom route templates
+### 5. Inspect the `SpecPath` showcase
+
+The controller-level `SpecPath` examples live in:
+
+- [specPathShowcaseController.ts](./src/controllers/specPathShowcaseController.ts)
+
+They demonstrate:
+
+- built-in JSON and YAML spec publishing
+- built-in Swagger UI, Redoc, and RapiDoc targets
+- custom string and stream handlers
+- memory and custom-cache behavior
+### 6. Inspect the custom route templates
 
 The generated route files are produced through custom Handlebars templates instead of the stock defaults:
 
@@ -160,7 +229,7 @@ The generated route files are produced through custom Handlebars templates inste
 
 These templates exist so the generated output stays aligned with this repo’s conventions and constraints.
 
-### 6. Inspect generated output
+### 7. Inspect generated output
 
 Generated specs:
 
@@ -178,7 +247,7 @@ Spec explorer implementation:
 
 - [specExplorer.ts](./src/lib/specExplorer.ts)
 
-### 7. Run the API verification suite
+### 8. Run the API verification suite
 
 The Playwright test project lives in:
 
@@ -189,6 +258,7 @@ It verifies:
 
 - shared controller behavior on Express, Koa, and Hapi
 - external validator endpoints across all frameworks
+- `SpecPath` JSON/YAML/custom/UI targets across all frameworks
 - served OpenAPI YAML and JSON endpoints across all frameworks
 - the docs hub and Swagger UI across all frameworks
 - middleware showcase endpoints on the matching framework

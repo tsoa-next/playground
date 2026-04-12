@@ -38,12 +38,17 @@
     "@koa/router": "^15.4.0",
     "express": "^5.1.0",
     "fp-ts": "^2.16.11",
+    "hapi-swagger": "^17.3.2",
     "io-ts": "^2.2.22",
-    "joi": "^18.1.2",
+    "joi": "^17.13.3",
     "koa": "^3.2.0",
     "koa-bodyparser": "^4.4.1",
+    "rapidoc": "^9.3.8",
+    "redoc": "^2.5.2",
     "superstruct": "^2.0.2",
     "swagger-ui-dist": "^5.32.2",
+    "swagger-ui-express": "^5.0.1",
+    "swagger-ui-koa": "^0.0.1",
     "yaml": "^2.8.3",
     "yup": "^1.7.1",
     "zod": "^4.1.5"
@@ -51,10 +56,10 @@
   "devDependencies": {
     "@playwright/test": "^1.54.2",
     "@types/express": "^5.0.5",
-    "@types/koa": "^2.15.0",
+    "@types/koa": "^3.0.2",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/node": "^25.6.0",
-    "tsoa-next": "^8.0.5",
+    "tsoa-next": "8.1.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

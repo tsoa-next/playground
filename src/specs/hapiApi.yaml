@@ -6,6 +6,45 @@ components:
   requestBodies: {}
   responses: {}
   schemas:
+    SpecPathShowcaseStateView:
+      properties:
+        customCacheGets:
+          type: number
+          format: double
+        customCacheSets:
+          type: number
+          format: double
+        customStreamCalls:
+          type: number
+          format: double
+        customStringCalls:
+          type: number
+          format: double
+      required:
+        - customCacheGets
+        - customCacheSets
+        - customStreamCalls
+        - customStringCalls
+      type: object
+      additionalProperties: false
+    SpecPathShowcaseStatusView:
+      properties:
+        availableDocsTargets:
+          items:
+            type: string
+          type: array
+        availableSpecTargets:
+          items:
+            type: string
+          type: array
+        state:
+          $ref: "#/components/schemas/SpecPathShowcaseStateView"
+      required:
+        - availableDocsTargets
+        - availableSpecTargets
+        - state
+      type: object
+      additionalProperties: false
     CarrierCode:
       type: string
       enum:
@@ -306,6 +345,53 @@ info:
     name: Vanna DiCatania
     email: vanna@dicatania.me
 paths:
+  /specPath:
+    get:
+      operationId: SpecPathShowcaseController_GetSpecPathStatus
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecPathShowcaseStatusView"
+      description: Summarizes the available SpecPath targets and the current
+        custom-handler state.
+      tags:
+        - spec
+      security: []
+      parameters: []
+  /specPath/state:
+    get:
+      operationId: SpecPathShowcaseController_GetSpecPathState
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecPathShowcaseStateView"
+      description: Returns the current custom SpecPath handler/cache counters.
+      tags:
+        - spec
+      security: []
+      parameters: []
+  /specPath/state/reset:
+    post:
+      operationId: SpecPathShowcaseController_ResetState
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecPathShowcaseStateView"
+      description: Resets the custom SpecPath handler/cache counters so repeatability
+        is easy in tests.
+      tags:
+        - spec
+      security: []
+      parameters: []
   /shipping/quote:
     get:
       operationId: ShippingQuoteController_GetShippingQuote

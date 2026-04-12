@@ -1,11 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AdditionalProps, Tsoa, TsoaRoute } from 'tsoa-next';
-import { ExpressTemplateService, fetchMiddlewares } from 'tsoa-next';
+import { createOpenApiSpecGenerator, ExpressTemplateService, fetchMiddlewares, fetchSpecPaths, normalisePath, resolveSpecPathResponse } from 'tsoa-next';
 {{#each controllers}}
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
 import type { NextFunction, Request, RequestHandler, Response, Router } from 'express';
+import { pipeline } from 'node:stream';
 
 const models: TsoaRoute.Models = {
   {{#each models}}
@@ -37,6 +38,8 @@ export function RegisterRoutes(router: Router, opts?: { validation?: Tsoa.Valida
     validation: opts?.validation,
   };
   const templateService = new ExpressTemplateService(models, additionalProps);
+  const specGenerator = createOpenApiSpecGenerator({{{json runtimeSpecConfig}}});
+  const registeredGetPaths = new Set<string>({{{json existingGetPaths}}});
   {{#each controllers}}
   {{#each actions}}
 
@@ -75,5 +78,50 @@ export function RegisterRoutes(router: Router, opts?: { validation?: Tsoa.Valida
     },
   );
   {{/each}}
+  {{/each}}
+  {{#each controllers}}
+  for (const specPath of fetchSpecPaths({{name}})) {
+    const specFullPath = normalisePath('{{../basePath}}{{path}}' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for {{name}} at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    router.get(
+      specFullPath,
+      async function {{name}}_specPath(request: Request, response: Response, next: NextFunction) {
+        try {
+          const specResponse = await resolveSpecPathResponse({
+            controllerClass: {{name}},
+            fullPath: specFullPath,
+            request,
+            response,
+            runtime: 'express',
+            specGenerator,
+            specPath,
+          });
+
+          if (specResponse.contentType) {
+            response.type(specResponse.contentType);
+          }
+
+          response.status(200);
+          if (typeof specResponse.body === 'string') {
+            response.send(specResponse.body);
+            return;
+          }
+
+          pipeline(specResponse.body, response, error => {
+            if (error) {
+              next(error);
+            }
+          });
+          return;
+        } catch (error) {
+          next(error);
+        }
+      },
+    );
+  }
   {{/each}}
 }

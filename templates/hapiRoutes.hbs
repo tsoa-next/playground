@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AdditionalProps, Tsoa, TsoaRoute } from 'tsoa-next';
-import { fetchMiddlewares, HapiTemplateService } from 'tsoa-next';
+import { createOpenApiSpecGenerator, fetchMiddlewares, fetchSpecPaths, HapiTemplateService, normalisePath, resolveSpecPathResponse } from 'tsoa-next';
 {{#each controllers}}
 import { {{name}} } from '{{modulePath}}';
 {{/each}}
@@ -102,6 +102,8 @@ export function RegisterRoutes(server: Server, opts?: { validation?: Tsoa.Valida
     validation: opts?.validation,
   };
   const templateService = new HapiTemplateService(models, additionalProps, { boomify, isBoom });
+  const specGenerator = createOpenApiSpecGenerator({{{json runtimeSpecConfig}}});
+  const registeredGetPaths = new Set<string>({{{json existingGetPaths}}});
   {{#each controllers}}
   {{#each actions}}
 
@@ -144,5 +146,43 @@ export function RegisterRoutes(server: Server, opts?: { validation?: Tsoa.Valida
     },
   });
   {{/each}}
+  {{/each}}
+  {{#each controllers}}
+  for (const specPath of fetchSpecPaths({{name}})) {
+    const specFullPath = normalisePath('{{../basePath}}{{path}}' + specPath.normalizedPath, '/', '', false);
+    if (registeredGetPaths.has(specFullPath)) {
+      throw new Error(`Duplicate GET route detected while registering @SpecPath for {{name}} at '${specFullPath}'.`);
+    }
+    registeredGetPaths.add(specFullPath);
+
+    server.route({
+      method: 'get',
+      path: specFullPath,
+      options: {
+        handler: async function {{name}}_specPath(request: Request, h: ResponseToolkit) {
+          try {
+            const specResponse = await resolveSpecPathResponse({
+              controllerClass: {{name}},
+              fullPath: specFullPath,
+              request,
+              response: h,
+              runtime: 'hapi',
+              specGenerator,
+              specPath,
+            });
+
+            const response = h.response(specResponse.body).code(200);
+            if (specResponse.contentType) {
+              response.type(specResponse.contentType);
+            }
+
+            return response;
+          } catch (error) {
+            throw toBoomError(error);
+          }
+        },
+      },
+    });
+  }
   {{/each}}
 }
