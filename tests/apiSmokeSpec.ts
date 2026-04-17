@@ -268,6 +268,8 @@ test('summarizes the SpecPath showcase targets', async ({ request }) => {
   expect(response.ok()).toBeTruthy()
   expect(body.availableSpecTargets).toContain('spec')
   expect(body.availableDocsTargets).toContain('swaggerUi')
+  expect(body.conditionalSpecTargets).toContain('gated')
+  expect(body.disabledSpecTargets).toContain('disabled')
   expect(body.state.customStringCalls).toBe(0)
 })
 
@@ -285,6 +287,25 @@ test('serves the built-in SpecPath JSON and YAML targets', async ({ request }) =
   expect(yamlResponse.ok()).toBeTruthy()
   expect(yamlResponse.headers()['content-type']).toContain('application/yaml')
   expect(yamlBody).toContain('title: tsoa-next Playground API')
+})
+
+test('gates request-aware SpecPath routes and skips disabled ones', async ({ request }) => {
+  const gatedDeniedResponse = await request.get('/v1/specPath/gated')
+  expect(gatedDeniedResponse.status()).toBe(404)
+
+  const gatedAllowedResponse = await request.get('/v1/specPath/gated', {
+    headers: {
+      'x-allow-spec': 'true',
+    },
+  })
+  const gatedAllowedBody = await gatedAllowedResponse.json()
+
+  expect(gatedAllowedResponse.ok()).toBeTruthy()
+  expect(gatedAllowedResponse.headers()['content-type']).toContain('application/json')
+  expect(gatedAllowedBody.info.title).toBe('tsoa-next Playground API')
+
+  const disabledResponse = await request.get('/v1/specPath/disabled')
+  expect(disabledResponse.status()).toBe(404)
 })
 
 test('caches the custom SpecPath string handler', async ({ request }) => {

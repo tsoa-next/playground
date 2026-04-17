@@ -8,5 +8,7 @@ export interface SpecPathShowcaseStateView {
 export interface SpecPathShowcaseStatusView {
   availableDocsTargets: string[]
   availableSpecTargets: string[]
+  conditionalSpecTargets: string[]
+  disabledSpecTargets: string[]
   state: SpecPathShowcaseStateView
 }

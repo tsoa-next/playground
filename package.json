@@ -56,10 +56,10 @@
   "devDependencies": {
     "@playwright/test": "^1.54.2",
     "@types/express": "^5.0.5",
-    "@types/koa": "^3.0.2",
+    "@types/koa": "^2.15.0",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/node": "^25.6.0",
-    "tsoa-next": "8.1.0",
+    "tsoa-next": "8.2.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

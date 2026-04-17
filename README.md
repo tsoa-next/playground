@@ -24,7 +24,7 @@ This repo is intentionally built as a broad exploration surface rather than a mi
   - `yup`
   - `superstruct`
   - `io-ts`
-- `SpecPath` examples for generated spec serving, built-in docs UIs, and custom response handlers.
+- `SpecPath` examples for generated spec serving, built-in docs UIs, custom response handlers, and request-aware route gating.
 - `tsoa` CLI generation through three root configs:
   - [tsoa.express.yaml](./tsoa.express.yaml)
   - [tsoa.koa.yaml](./tsoa.koa.yaml)
@@ -42,8 +42,7 @@ This repo is intentionally built as a broad exploration surface rather than a mi
 ## ⚠️ Dependency Notes
 
 - `fp-ts` is installed directly in this repo because the `io-ts` validation showcase needs it at runtime and relying on transitive installation is fragile.
-- This playground intentionally stays on `joi@18`, even though current `tsoa-next` runtime releases still advertise a peer range of `joi@^17.13.3`.
-- In practice, the `joi` examples in this repo currently verify cleanly against the published `8.0.5` release, `tsoa-next` `main`, and `8.0.5-dev.57.84bb4a63`, but npm may still report the peer-range mismatch during clean installs depending on how you install overrides or prerelease builds.
+- This playground currently stays on `joi@17.13.3` so the installed validator matches the published `tsoa-next` peer range.
 
 ## ⚡ Quick Start
 
@@ -98,12 +97,16 @@ Once a server is running, these endpoints work on all three frameworks:
   Custom uncached stream-producing `SpecPath` handler.
 - `/v1/specPath/customCachedStream`
   Custom stream-producing `SpecPath` handler backed by a custom cache.
+- `/v1/specPath/gated`
+  JSON `SpecPath` target that only resolves when the request includes `x-allow-spec: true`.
 - `/v1/specPath/swaggerUi`
   Built-in Swagger UI `SpecPath` target.
 - `/v1/specPath/redocUi`
   Built-in Redoc `SpecPath` target.
 - `/v1/specPath/rapidocUi`
   Built-in RapiDoc `SpecPath` target.
+
+The showcase controller also declares `/v1/specPath/disabled`, but that route is intentionally excluded from registration through `gate: false`.
 
 ### Framework-specific middleware endpoints
 
@@ -218,6 +221,7 @@ They demonstrate:
 - built-in JSON and YAML spec publishing
 - built-in Swagger UI, Redoc, and RapiDoc targets
 - custom string and stream handlers
+- request-aware spec gating and statically disabled routes
 - memory and custom-cache behavior
 ### 6. Inspect the custom route templates
 

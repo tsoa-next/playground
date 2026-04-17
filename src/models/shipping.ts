@@ -6,6 +6,10 @@ export type ServiceLevelCode = 'standard' | 'expedited'
 export interface ShippingQuoteRequestQuery {
   destinationCountryCode: string
   destinationPostalCode: string
+
+  /**
+   * @minimum 1
+   */
   parcels: number
   expedited: boolean
   market: 'us' | 'eu'
@@ -20,4 +24,3 @@ export interface ShippingQuoteView {
   estimatedBusinessDays: number
   quotedAmount: number
 }
-

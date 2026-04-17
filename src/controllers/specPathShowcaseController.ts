@@ -28,6 +28,11 @@ function resetSpecPathState(): void {
   cachedStreamPayloads.clear()
 }
 
+function allowSpecPathWhenHeaderPresent(context: SpecRequestContext): boolean {
+  const headers = (context.request as { headers?: Record<string, string | string[] | undefined> } | undefined)?.headers
+  return headers?.['x-allow-spec'] === 'true'
+}
+
 async function customStringHandler(context: SpecRequestContext): Promise<string> {
   specPathState.customStringCalls += 1
   const spec = await context.getSpecObject()
@@ -59,13 +64,15 @@ const streamCacheHandler: SpecCacheHandler = {
 @Route('specPath')
 @Tags('spec')
 @SpecPath()
-@SpecPath('yaml', 'yaml')
-@SpecPath('customString', customStringHandler, 'memory')
-@SpecPath('customStream', customStreamHandler, 'none')
-@SpecPath('customCachedStream', customStreamHandler, streamCacheHandler)
-@SpecPath('swaggerUi', 'swagger')
-@SpecPath('redocUi', 'redoc')
-@SpecPath('rapidocUi', 'rapidoc')
+@SpecPath('yaml', { target: 'yaml' })
+@SpecPath('customString', { target: customStringHandler, cache: 'memory' })
+@SpecPath('customStream', { target: customStreamHandler, cache: 'none' })
+@SpecPath('customCachedStream', { target: customStreamHandler, cache: streamCacheHandler })
+@SpecPath('swaggerUi', { target: 'swagger' })
+@SpecPath('redocUi', { target: 'redoc' })
+@SpecPath('rapidocUi', { target: 'rapidoc' })
+@SpecPath('gated', { gate: allowSpecPathWhenHeaderPresent })
+@SpecPath('disabled', { gate: false })
 export class SpecPathShowcaseController extends Controller {
   /**
    * Summarizes the available SpecPath targets and the current custom-handler state.
@@ -75,6 +82,8 @@ export class SpecPathShowcaseController extends Controller {
     return {
       availableDocsTargets: ['swaggerUi', 'redocUi', 'rapidocUi'],
       availableSpecTargets: ['spec', 'yaml', 'customString', 'customStream', 'customCachedStream'],
+      conditionalSpecTargets: ['gated'],
+      disabledSpecTargets: ['disabled'],
       state: { ...specPathState },
     }
   }
