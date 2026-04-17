@@ -29,6 +29,24 @@ const wagerSubmissionPayload = {
   outcome: 2,
 }
 
+const middlewareExpectations: Record<string, { events: string[]; framework: string; path: string }> = {
+  express: {
+    events: ['express:controller', 'express:method:first', 'express:method:second'],
+    framework: 'express',
+    path: '/v1/middleware/express/trace',
+  },
+  hapi: {
+    events: ['hapi:controller', 'hapi:method:first', 'hapi:method:second'],
+    framework: 'hapi',
+    path: '/v1/middleware/hapi/trace',
+  },
+  koa: {
+    events: ['koa:controller', 'koa:method:first', 'koa:method:second'],
+    framework: 'koa',
+    path: '/v1/middleware/koa/trace',
+  },
+}
+
 function resolveFrameworkLabel(projectName: string): string {
   switch (projectName) {
     case 'express':
@@ -370,35 +388,15 @@ test('serves the built-in SpecPath UI shells', async ({ request }) => {
   expect(rapidocBody).toContain('tsoa-next Playground API')
 })
 
-test('shows express middleware order on the express server', async ({ request }, testInfo) => {
-  test.skip(testInfo.project.name !== 'express', 'Express middleware showcase is only generated for the Express server.')
+test('shows middleware order on the matching framework server', async ({ request }, testInfo) => {
+  const expectation = middlewareExpectations[testInfo.project.name]
 
-  const response = await request.get('/v1/middleware/express/trace')
+  expect(expectation, `Unsupported framework project '${testInfo.project.name}'.`).toBeTruthy()
+
+  const response = await request.get(expectation.path)
   const body = await response.json()
 
   expect(response.ok()).toBeTruthy()
-  expect(body.framework).toBe('express')
-  expect(body.events).toEqual(['express:controller', 'express:method:first', 'express:method:second'])
-})
-
-test('shows koa middleware order on the koa server', async ({ request }, testInfo) => {
-  test.skip(testInfo.project.name !== 'koa', 'Koa middleware showcase is only generated for the Koa server.')
-
-  const response = await request.get('/v1/middleware/koa/trace')
-  const body = await response.json()
-
-  expect(response.ok()).toBeTruthy()
-  expect(body.framework).toBe('koa')
-  expect(body.events).toEqual(['koa:controller', 'koa:method:first', 'koa:method:second'])
-})
-
-test('shows hapi middleware order on the hapi server', async ({ request }, testInfo) => {
-  test.skip(testInfo.project.name !== 'hapi', 'Hapi middleware showcase is only generated for the Hapi server.')
-
-  const response = await request.get('/v1/middleware/hapi/trace')
-  const body = await response.json()
-
-  expect(response.ok()).toBeTruthy()
-  expect(body.framework).toBe('hapi')
-  expect(body.events).toEqual(['hapi:controller', 'hapi:method:first', 'hapi:method:second'])
+  expect(body.framework).toBe(expectation.framework)
+  expect(body.events).toEqual(expectation.events)
 })

@@ -32,7 +32,16 @@ jobs:
         run: npm run typecheck
 
       - name: Run full example suite
-        run: npm test
+        shell: bash
+        run: |
+          set -euo pipefail
+          output_file="$(mktemp)"
+          npm test | tee "$output_file"
+
+          if grep -Eq '(^|[[:space:]])[1-9][0-9]* skipped([[:space:]]|$)' "$output_file"; then
+            echo "Skipped tests detected in the example suite."
+            exit 1
+          fi
 
       - name: Build generated playground
         run: npm run build
