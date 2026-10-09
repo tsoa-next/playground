@@ -7,8 +7,12 @@ import { RegisterRoutes } from '../../server/express/routes/controllerGen'
 export function createExpressApp(): Express {
   const app = express()
 
-  app.use(express.json())
+  app.use(express.json({ type: ['application/json', 'application/vnd.playground+json'] }))
   app.use(express.urlencoded({ extended: true }))
+  app.use((request, _response, next) => {
+    Object.assign(request, { playgroundRequestId: String(request.headers['x-request-id'] ?? 'demo') })
+    next()
+  })
 
   app.get('/health', (_request, response) => {
     response.json({ framework: 'express', status: 'ok' })

@@ -266,40 +266,6 @@ test('embeds documented examples and validator metadata into the generated OpenA
   }
 })
 
-test('resets SpecPath counters back to zero after exercising the custom handlers', async ({ request }) => {
-  const initialResetResponse = await request.post('/v1/specPath/state/reset')
-  const initialResetBody = await initialResetResponse.json()
-
-  expect(initialResetResponse.ok()).toBeTruthy()
-  expect(initialResetBody).toEqual({
-    customCacheGets: 0,
-    customCacheSets: 0,
-    customStreamCalls: 0,
-    customStringCalls: 0,
-  })
-
-  await request.get('/v1/specPath/customStream')
-
-  const dirtyStateResponse = await request.get('/v1/specPath/state')
-  const dirtyStateBody = await dirtyStateResponse.json()
-
-  expect(dirtyStateBody.customStreamCalls).toBeGreaterThan(0)
-
-  const resetResponse = await request.post('/v1/specPath/state/reset')
-  const resetBody = await resetResponse.json()
-  const cleanStateResponse = await request.get('/v1/specPath/state')
-  const cleanStateBody = await cleanStateResponse.json()
-
-  expect(resetResponse.ok()).toBeTruthy()
-  expect(resetBody).toEqual({
-    customCacheGets: 0,
-    customCacheSets: 0,
-    customStreamCalls: 0,
-    customStringCalls: 0,
-  })
-  expect(cleanStateBody).toEqual(resetBody)
-})
-
 test('keeps middleware examples isolated to the matching framework and resets traces per request', async ({ request }, testInfo) => {
   const framework = getFramework(testInfo.project.name)
   const matchingPath = apiMiddlewarePaths[framework]

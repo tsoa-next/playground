@@ -17,11 +17,26 @@ spec:
     - "http"
   servers:
     - "127.0.0.1:3102"
+  rootSecurity:
+    - api_key: []
+  securityDefinitions:
+    api_key:
+      type: apiKey
+      name: x-api-key
+      in: header
+    bearer:
+      type: oauth2
+      flow: implicit
+      authorizationUrl: https://example.invalid/authorize
+      scopes:
+        read: Read demo data
+        write: Write demo data
   basePath: "/v1"
   operationIdTemplate: "{{controllerName}}_{{titleCase method.name}}"
 routes:
   routesDir: "./src/server/koa/routes"
   routesFileName: "controllerGen.ts"
   middleware: "koa"
-  middlewareTemplate: "./templates/koaRoutes.hbs"
   basePath: "/v1"
+  authenticationModule: "./src/lib/authentication.ts"
+  iocModule: "./src/lib/ioc.ts"

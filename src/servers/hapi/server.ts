@@ -9,6 +9,11 @@ export async function createHapiServer(port = resolveServerPort(3103)): Promise<
     port,
   })
 
+  server.ext('onRequest', (request, h) => {
+    Object.assign(request, { playgroundRequestId: String(request.headers['x-request-id'] ?? 'demo') })
+    return h.continue
+  })
+
   server.route({
     handler: () => ({ framework: 'hapi', status: 'ok' }),
     method: 'GET',

@@ -1,4 +1,4 @@
-import { Controller, Get, Path, Queries, Route, Tags } from 'tsoa-next'
+import { NoSecurity, Controller, Get, Path, Queries, Route, Tags } from 'tsoa-next'
 import { CarrierCode, ShippingQuoteRequestQuery, ShippingQuoteView } from '../models/shipping'
 import { PlaygroundScenarioService } from '../services/playgroundScenarioService'
 
@@ -7,6 +7,7 @@ import { PlaygroundScenarioService } from '../services/playgroundScenarioService
  * calculations, directly mirroring the upstream parameter fixture patterns with a
  * fulfillment-specific domain.
  */
+@NoSecurity()
 @Route('shipping')
 @Tags('shipping')
 export class ShippingQuoteController extends Controller {

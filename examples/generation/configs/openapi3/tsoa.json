@@ -1,0 +1,14 @@
+{
+  "entryFile": "./examples/generation/generationController.ts",
+  "tsconfig": "./tsconfig.json",
+  "noImplicitAdditionalProperties": "silently-remove-extras",
+  "spec": {
+    "outputDirectory": "./examples/generation/output/openapi3",
+    "specVersion": 3,
+    "name": "openapi3"
+  },
+  "routes": {
+    "routesDir": "./examples/generation/output/openapi3",
+    "middleware": "express"
+  }
+}

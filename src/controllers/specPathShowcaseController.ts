@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream'
 import {
   Controller,
+  NoSecurity,
   Get,
   Post,
   Route,
@@ -61,11 +62,13 @@ const streamCacheHandler: SpecCacheHandler = {
  * JSON/YAML/UI targets and custom handler caching behavior, so consumers can see
  * how tsoa-next can publish generated specs directly from a controller definition.
  */
+@NoSecurity()
 @Route('specPath')
 @Tags('spec')
 @SpecPath()
 @SpecPath('yaml', { target: 'yaml' })
 @SpecPath('customString', { target: customStringHandler, cache: 'memory' })
+@SpecPath('customUncachedString', { target: customStringHandler, cache: 'none' })
 @SpecPath('customStream', { target: customStreamHandler, cache: 'none' })
 @SpecPath('customCachedStream', { target: customStreamHandler, cache: streamCacheHandler })
 @SpecPath('swaggerUi', { target: 'swagger' })
@@ -81,7 +84,7 @@ export class SpecPathShowcaseController extends Controller {
   public getSpecPathStatus(): SpecPathShowcaseStatusView {
     return {
       availableDocsTargets: ['swaggerUi', 'redocUi', 'rapidocUi'],
-      availableSpecTargets: ['spec', 'yaml', 'customString', 'customStream', 'customCachedStream'],
+      availableSpecTargets: ['spec', 'yaml', 'customString', 'customUncachedString', 'customStream', 'customCachedStream'],
       conditionalSpecTargets: ['gated'],
       disabledSpecTargets: ['disabled'],
       state: { ...specPathState },

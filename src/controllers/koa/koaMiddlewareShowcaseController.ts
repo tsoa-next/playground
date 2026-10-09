@@ -1,5 +1,5 @@
 import type { Context, Middleware, Next } from 'koa'
-import { Get, Middlewares as GenericMiddlewares, Route, Tags } from 'tsoa-next'
+import { NoSecurity, Get, Middlewares as GenericMiddlewares, Route, Tags } from 'tsoa-next'
 import { MiddlewareTraceView } from '../../models/middlewareShowcase'
 import { MiddlewareShowcaseBase } from '../support/middlewareShowcaseBase'
 
@@ -21,6 +21,7 @@ function KoaMiddlewares(...middlewares: Middleware[]) {
  * while reusing shared controller functionality from a base class.
  */
 @GenericMiddlewares<Middleware>(recordKoaMiddleware('koa:controller'))
+@NoSecurity()
 @Route('middleware/koa')
 @Tags('middleware')
 export class KoaMiddlewareShowcaseController extends MiddlewareShowcaseBase {

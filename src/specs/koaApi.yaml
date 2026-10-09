@@ -123,6 +123,17 @@ components:
         - market
       type: object
       additionalProperties: false
+    PlaygroundUser:
+      properties:
+        name:
+          type: string
+        scheme:
+          type: string
+      required:
+        - name
+        - scheme
+      type: object
+      additionalProperties: false
     MoneyAmount:
       properties:
         currency:
@@ -216,6 +227,25 @@ components:
         - subtotal
         - tax
         - grandTotal
+      type: object
+      additionalProperties: false
+    GreetingView:
+      properties:
+        greeting:
+          type: string
+        requestId:
+          type: string
+      required:
+        - greeting
+        - requestId
+      type: object
+      additionalProperties: false
+    GreetingInput:
+      properties:
+        name:
+          type: string
+      required:
+        - name
       type: object
       additionalProperties: false
     ValidationLifecycleStatus:
@@ -344,7 +374,19 @@ components:
         - framework
       type: object
       additionalProperties: false
-  securitySchemes: {}
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: x-api-key
+      in: header
+    bearer:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://example.invalid/authorize
+          scopes:
+            read: Read demo data
+            write: Write demo data
 info:
   title: tsoa-next Playground API
   version: 1.0.0
@@ -356,6 +398,90 @@ info:
     name: Vanna DiCatania
     email: vanna@dicatania.me
 paths:
+  /uploads/single:
+    post:
+      operationId: UploadShowcaseController_Single
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  content:
+                    type: string
+                  bytes:
+                    type: number
+                    format: double
+                  name:
+                    type: string
+                  title:
+                    type: string
+                required:
+                  - content
+                  - bytes
+                  - name
+                  - title
+                type: object
+      tags:
+        - uploads
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                asset:
+                  type: string
+                  format: binary
+              required:
+                - title
+                - asset
+  /uploads/many:
+    post:
+      operationId: UploadShowcaseController_Many
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  contents:
+                    items:
+                      type: string
+                    type: array
+                  names:
+                    items:
+                      type: string
+                    type: array
+                required:
+                  - contents
+                  - names
+                type: object
+      tags:
+        - uploads
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                assets:
+                  items:
+                    type: string
+                    format: binary
+                  type: array
+              required:
+                - assets
   /specPath:
     get:
       operationId: SpecPathShowcaseController_GetSpecPathStatus
@@ -499,6 +625,108 @@ paths:
             enum:
               - us
               - eu
+  /security/root:
+    get:
+      operationId: SecurityShowcaseController_Root
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  user:
+                    $ref: "#/components/schemas/PlaygroundUser"
+                type: object
+      tags:
+        - security
+      security:
+        - api_key: []
+      parameters: []
+  /security/public:
+    get:
+      operationId: SecurityShowcaseController_Public
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  public:
+                    type: boolean
+                required:
+                  - public
+                type: object
+      tags:
+        - security
+      security: []
+      parameters: []
+  /security/either:
+    get:
+      operationId: SecurityShowcaseController_Either
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  authorized:
+                    type: boolean
+                required:
+                  - authorized
+                type: object
+      tags:
+        - security
+      security:
+        - api_key: []
+        - bearer:
+            - read
+      parameters: []
+  /security/both:
+    get:
+      operationId: SecurityShowcaseController_Both
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  authorized:
+                    type: boolean
+                required:
+                  - authorized
+                type: object
+      tags:
+        - security
+      security:
+        - api_key: []
+          bearer:
+            - read
+      parameters: []
+  /security/scoped:
+    get:
+      operationId: SecurityShowcaseController_Scoped
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  authorized:
+                    type: boolean
+                required:
+                  - authorized
+                type: object
+      tags:
+        - security
+      security:
+        - bearer:
+            - write
+      parameters: []
   /order-drafts:
     post:
       operationId: OrderDraftController_CreateOrderDraft
@@ -567,6 +795,247 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateOrderDraftRequest"
+  /features/greeting:
+    post:
+      operationId: createGreeting
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GreetingView"
+              examples:
+                Example 1:
+                  value:
+                    greeting: Hello Ada
+                    requestId: demo
+      tags:
+        - features
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GreetingInput"
+  /features/body-property:
+    post:
+      operationId: FeatureShowcaseController_BodyProperty
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  name:
+                    type: string
+                required:
+                  - name
+                type: object
+      tags:
+        - features
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              type: object
+  /features/request:
+    get:
+      operationId: FeatureShowcaseController_Request
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  requestId:
+                    type: string
+                  sameRequestId:
+                    type: boolean
+                required:
+                  - requestId
+                  - sameRequestId
+                type: object
+      tags:
+        - features
+      security: []
+      parameters: []
+  /features/response:
+    get:
+      operationId: FeatureShowcaseController_Response
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+                type: object
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+                type: object
+          headers:
+            x-demo-response:
+              schema:
+                type: string
+              required: true
+      tags:
+        - features
+      security: []
+      parameters:
+        - in: query
+          name: conflict
+          required: false
+          schema:
+            default: false
+            type: boolean
+  /features/media:
+    post:
+      operationId: FeatureShowcaseController_Media
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - features
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/vnd.playground+json:
+            schema:
+              $ref: "#/components/schemas/GreetingInput"
+  /features/verbs:
+    put:
+      operationId: FeatureShowcaseController_Put
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GreetingInput"
+      tags:
+        - features
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GreetingInput"
+    patch:
+      operationId: FeatureShowcaseController_Patch
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GreetingInput"
+      tags:
+        - features
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              type: object
+    delete:
+      operationId: FeatureShowcaseController_Remove
+      responses:
+        "204":
+          description: ""
+      tags:
+        - features
+      security: []
+      parameters: []
+    options:
+      operationId: FeatureShowcaseController_Options
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  methods:
+                    items:
+                      type: string
+                    type: array
+                required:
+                  - methods
+                type: object
+      tags:
+        - features
+      security: []
+      parameters: []
+    head:
+      operationId: KoaHeadShowcaseController_Head
+      responses:
+        "204":
+          description: No content
+      tags:
+        - Features
+      security: []
+      parameters: []
+  /features/legacy:
+    get:
+      operationId: FeatureShowcaseController_Legacy
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  deprecated:
+                    type: boolean
+                required:
+                  - deprecated
+                type: object
+      tags:
+        - features
+      deprecated: true
+      security: []
+      parameters: []
+      x-playground: legacy
   /validation/external/zod:
     post:
       operationId: ExternalValidationShowcaseController_ValidateWithZod

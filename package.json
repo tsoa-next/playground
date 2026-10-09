@@ -20,7 +20,12 @@
     "serve:koa": "tsx src/servers/koa/server.ts",
     "serve:hapi": "tsx src/servers/hapi/server.ts",
     "test:api": "npm run generate && playwright test -c playwrightConfig.ts",
-    "test": "npm run test:api"
+    "test": "npm run test:api",
+    "examples:generate": "tsoa generate examples/generation/configs",
+    "examples:check": "tsoa check examples/generation/configs",
+    "examples:template-check": "tsoa template-check -c examples/generation/custom-template.json",
+    "examples:programmatic": "tsx examples/generation/programmatic.ts",
+    "examples:standalone": "tsoa spec-and-routes -c examples/generation/standalone.json"
   },
   "keywords": [
     "express",
@@ -35,6 +40,7 @@
   "license": "MIT",
   "dependencies": {
     "@hapi/hapi": "^21.4.4",
+    "@koa/multer": "^4.0.0",
     "@koa/router": "^15.4.0",
     "express": "^5.1.0",
     "fp-ts": "^2.16.11",
@@ -43,6 +49,7 @@
     "joi": "^17.13.3",
     "koa": "^3.2.0",
     "koa-bodyparser": "^4.4.1",
+    "multer": "^2.2.0",
     "rapidoc": "^9.3.8",
     "redoc": "^2.5.2",
     "superstruct": "^2.0.2",
@@ -56,10 +63,11 @@
   "devDependencies": {
     "@playwright/test": "^1.54.2",
     "@types/express": "^5.0.5",
-    "@types/koa": "^2.15.0",
+    "@types/koa": "^3.0.3",
     "@types/koa-bodyparser": "^4.3.12",
+    "@types/multer": "^2.2.0",
     "@types/node": "^25.6.0",
-    "tsoa-next": "8.2.2",
+    "tsoa-next": "8.3.2-dev.81.7efe4eb3",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

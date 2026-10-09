@@ -25,6 +25,12 @@ This repo is intentionally built as a broad exploration surface rather than a mi
   - `superstruct`
   - `io-ts`
 - `SpecPath` examples for generated spec serving, built-in docs UIs, custom response handlers, and request-aware route gating.
+- Root and per-method authentication, OR/AND credentials and scope checks.
+- Request-scoped dependency injection without a DI framework.
+- Body-property and native-request bindings, typed response callbacks, headers and media types.
+- PUT, PATCH, DELETE, HEAD and OPTIONS, hidden/deprecated operations and extensions.
+- Single and multiple multipart uploads on Express, Koa and Hapi.
+- CLI discovery, change-aware generation/checks, template checking and programmatic metadata reuse.
 - `tsoa` CLI generation through three root configs:
   - [tsoa.express.yaml](./tsoa.express.yaml)
   - [tsoa.koa.yaml](./tsoa.koa.yaml)
@@ -71,7 +77,7 @@ Run exactly one of these when you want to explore a single framework locally:
 - `npm run serve:hapi`
   Base URL: `http://127.0.0.1:3103`
 
-Each server mounts all shared controllers plus its own framework-specific middleware controller.
+Each server mounts all shared controllers plus its own framework-specific middleware controller. The existing catalog/order/shipping/validation/middleware/spec examples stay public through `@NoSecurity()`. `/v1/security/root` demonstrates API-wide `spec.rootSecurity`; it requires `x-api-key: playground-key`. These are demo credentials, not application authentication.
 
 ### Shared spec and docs endpoints on every server
 
@@ -93,6 +99,8 @@ Once a server is running, these endpoints work on all three frameworks:
   Built-in YAML `SpecPath` target.
 - `/v1/specPath/customString`
   Custom string-producing `SpecPath` handler with in-memory caching.
+- `/v1/specPath/customUncachedString`
+  Custom string-producing handler that runs for every request.
 - `/v1/specPath/customStream`
   Custom uncached stream-producing `SpecPath` handler.
 - `/v1/specPath/customCachedStream`
@@ -155,7 +163,7 @@ Each one controls:
 
 - the middleware type
 - the route output directory
-- the custom route template
+- the selected built-in middleware template
 - the generated spec output file
 - the controller discovery globs
 
@@ -225,13 +233,13 @@ They demonstrate:
 - memory and custom-cache behavior
 ### 6. Inspect the custom route templates
 
-The generated route files are produced through custom Handlebars templates instead of the stock defaults:
+Custom Handlebars authoring examples are retained here:
 
 - [expressRoutes.hbs](./templates/expressRoutes.hbs)
 - [koaRoutes.hbs](./templates/koaRoutes.hbs)
 - [hapiRoutes.hbs](./templates/hapiRoutes.hbs)
 
-These templates exist so the generated output stays aligned with this repo’s conventions and constraints.
+The main servers use the library's built-in templates, which include authentication, IoC, response callbacks, uploads and spec serving. The retained custom templates are separate authoring examples, exercised by template-check and generation tests. They show the original public API and spec-serving implementation; they are not substitutes for the full built-in template feature set.
 
 ### 7. Inspect generated output
 
@@ -317,3 +325,48 @@ If you want to understand how `tsoa-next` can power a real Node API surface acro
 - 🗺️ generated route examples
 - 📄 generated spec examples
 - ✅ executable verification
+
+## Full-feature server examples
+
+The shared controllers run on every server. Explicit `@Head` examples live in the Express and Koa controller directories; Hapi automatically serves HEAD requests for GET routes and does not accept explicit HEAD registration:
+
+- [featureShowcaseController.ts](src/controllers/featureShowcaseController.ts): `/v1/features/greeting` accepts `{ "name": "Ada" }` and reports the request-scoped `x-request-id`. `/body-property` binds only `name`; `/request` compares `@Request` and `@RequestProp` using the own `playgroundRequestId` data property added by each server’s middleware. `/response?conflict=true` uses a typed 409 callback and response header. `/media` consumes `application/vnd.playground+json` and produces `text/plain`. `/verbs` demonstrates PUT/PATCH/DELETE/HEAD/OPTIONS. `/legacy` is deprecated; `/hidden` works at runtime but is omitted from the spec.
+- [securityShowcaseController.ts](src/controllers/securityShowcaseController.ts): `/v1/security/root` uses root API-key security; `/public` clears it. `/either` accepts either the API key or a bearer token with `read`; `/both` needs both; `/scoped` needs bearer `write` scope. Demo bearer headers are `authorization: Bearer playground-token` and `x-scopes: read write`. Missing credentials return 401 and missing scopes return 403.
+- [uploadShowcaseController.ts](src/controllers/uploadShowcaseController.ts): `/v1/uploads/single` accepts multipart `title` and `asset`; `/many` accepts repeated `assets` fields. Responses include filenames and content so the examples show actual upload parsing. Express/Koa use memory-storage multer; Hapi uses its native multipart handling.
+- [authentication.ts](src/lib/authentication.ts) exports each framework's authentication function; [ioc.ts](src/lib/ioc.ts) supplies a new controller/service for each request.
+
+For example, with Express running:
+
+```bash
+curl -H 'x-api-key: playground-key' http://127.0.0.1:3101/v1/security/root
+curl -H 'authorization: Bearer playground-token' -H 'x-scopes: read write' http://127.0.0.1:3101/v1/security/scoped
+curl -H 'content-type: application/json' -H 'x-request-id: demo-123' -d '{"name":"Ada"}' http://127.0.0.1:3101/v1/features/greeting
+curl -F title=Notes -F asset=@README.md http://127.0.0.1:3101/v1/uploads/single
+```
+
+## Generation and template authoring examples
+
+[examples/generation](examples/generation) contains a small controller and conventional JSON configs for OpenAPI 2, 3 and 3.1. Each selects a different additional-property policy: `ignore` retains extra body fields; `silently-remove-extras` removes them; `throw-on-extras` rejects them. The default templates generate JSON specs and Express routes. Tests also exercise the same policies and versions with Koa/Hapi, plus YAML/YML and JS/CJS configuration loading.
+
+```bash
+# Inspect the conventional configs without generating output.
+npx tsoa discover examples/generation/configs
+# Generate only changed output; generated example files stay under the ignored output directory.
+npm run examples:generate
+# Check for missing/stale output without writing it.
+npm run examples:check
+# Parse/render the retained custom Express template and check TypeScript syntax without writing.
+npm run examples:template-check
+# Generate Express/Koa/Hapi from an object config, reusing returned metadata.
+npm run examples:programmatic
+# Use a standalone generator that owns its route writes.
+npm run examples:standalone
+```
+
+`template-check` checks the selected render's TypeScript syntax; it does not type-check the application or cover unrendered branches. Edit `routes.middlewareTemplate` in [custom-template.json](examples/generation/custom-template.json) to check another template. Ordinary custom-template generation remains available with `tsoa spec-and-routes -c examples/generation/custom-template.json`.
+
+[programmatic.ts](examples/generation/programmatic.ts) imports generation from `tsoa-next/cli`, while controllers import runtime decorators from `tsoa-next`. It preserves returned metadata identity when generating the other frameworks. CLI/config tests exercise failures at the selected dependency, then recover through an explicit retry; unused compiler/YAML/renderer integrations are not required by unrelated operations.
+
+`npm test` runs the existing API suite plus [featureShowcaseSpec.ts](tests/featureShowcaseSpec.ts), [generationExamplesSpec.ts](tests/generationExamplesSpec.ts), [docsBrowserSpec.ts](tests/docsBrowserSpec.ts) and [specPathSpec.ts](tests/specPathSpec.ts). Browser tests render Swagger UI/Redoc/RapiDoc and verify the explorer actually fetches its spec. Chromium is needed for browser tests; install it with `npx playwright install chromium` when setting up a fresh machine.
+
+[standaloneGenerator.cjs](examples/generation/standaloneGenerator.cjs) shows a custom generator producing a small `/custom-generation` route for the selected framework. Its config defaults to Express; tests run it on all three. It owns its output writes, so `tsoa generate`/`check` intentionally reject this config; use `spec-and-routes` or `routes` instead.

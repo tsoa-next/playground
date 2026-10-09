@@ -11,6 +11,7 @@ export function createKoaApp(): Koa {
   const router = new Router()
 
   app.use(async (context, next) => {
+    Object.assign(context.request, { playgroundRequestId: String(context.request.headers['x-request-id'] ?? 'demo') })
     try {
       await next()
     } catch (error) {
@@ -20,7 +21,7 @@ export function createKoaApp(): Koa {
     }
   })
 
-  app.use(bodyParser())
+  app.use(bodyParser({ extendTypes: { json: ['application/vnd.playground+json'] } }))
 
   router.get('/health', context => {
     context.body = { framework: 'koa', status: 'ok' }
