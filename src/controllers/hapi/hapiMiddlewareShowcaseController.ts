@@ -1,15 +1,15 @@
 import type { Request, ResponseToolkit, RouteOptionsPreAllOptions } from '@hapi/hapi'
-import { Get, Middlewares as GenericMiddlewares, Route, Tags } from 'tsoa-next'
+import { NoSecurity, Get, Middlewares as GenericMiddlewares, Route, Tags } from 'tsoa-next'
 import { MiddlewareTraceView } from '../../models/middlewareShowcase'
 import { MiddlewareShowcaseBase } from '../support/middlewareShowcaseBase'
 
 const middlewareEvents: string[] = []
 
 function recordHapiMiddleware(name: string): RouteOptionsPreAllOptions {
-  return async (_request: Request, _h: ResponseToolkit) => {
+  return (_request: Request, _h: ResponseToolkit) => new Promise<string>(resolve => {
     middlewareEvents.push(name)
-    return name
-  }
+    resolve(name)
+  })
 }
 
 function HapiMiddlewares(...middlewares: RouteOptionsPreAllOptions[]) {
@@ -21,6 +21,7 @@ function HapiMiddlewares(...middlewares: RouteOptionsPreAllOptions[]) {
  * while reusing shared controller functionality from a base class.
  */
 @GenericMiddlewares<RouteOptionsPreAllOptions>(recordHapiMiddleware('hapi:controller'))
+@NoSecurity()
 @Route('middleware/hapi')
 @Tags('middleware')
 export class HapiMiddlewareShowcaseController extends MiddlewareShowcaseBase {

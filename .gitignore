@@ -4,3 +4,5 @@ playwright-report
 test-results
 .vscode
 codealike.json
+
+examples/generation/output

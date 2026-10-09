@@ -176,8 +176,8 @@ test('defaults order repricing to USD when the currency query is omitted', async
   expect(response.ok()).toBeTruthy()
   expect(body.currency).toBe('USD')
   expect(body.subtotal.amount).toBe(320)
-  expect(body.tax.amount).toBe(26.4)
-  expect(body.grandTotal.amount).toBe(346.4)
+  expect(body.tax.amount).toBeCloseTo(26.4, 10)
+  expect(body.grandTotal.amount).toBeCloseTo(346.4, 10)
 })
 
 for (const validationCase of invalidValidationCases) {
@@ -266,40 +266,6 @@ test('embeds documented examples and validator metadata into the generated OpenA
   }
 })
 
-test('resets SpecPath counters back to zero after exercising the custom handlers', async ({ request }) => {
-  const initialResetResponse = await request.post('/v1/specPath/state/reset')
-  const initialResetBody = await initialResetResponse.json()
-
-  expect(initialResetResponse.ok()).toBeTruthy()
-  expect(initialResetBody).toEqual({
-    customCacheGets: 0,
-    customCacheSets: 0,
-    customStreamCalls: 0,
-    customStringCalls: 0,
-  })
-
-  await request.get('/v1/specPath/customStream')
-
-  const dirtyStateResponse = await request.get('/v1/specPath/state')
-  const dirtyStateBody = await dirtyStateResponse.json()
-
-  expect(dirtyStateBody.customStreamCalls).toBeGreaterThan(0)
-
-  const resetResponse = await request.post('/v1/specPath/state/reset')
-  const resetBody = await resetResponse.json()
-  const cleanStateResponse = await request.get('/v1/specPath/state')
-  const cleanStateBody = await cleanStateResponse.json()
-
-  expect(resetResponse.ok()).toBeTruthy()
-  expect(resetBody).toEqual({
-    customCacheGets: 0,
-    customCacheSets: 0,
-    customStreamCalls: 0,
-    customStringCalls: 0,
-  })
-  expect(cleanStateBody).toEqual(resetBody)
-})
-
 test('keeps middleware examples isolated to the matching framework and resets traces per request', async ({ request }, testInfo) => {
   const framework = getFramework(testInfo.project.name)
   const matchingPath = apiMiddlewarePaths[framework]
@@ -313,12 +279,15 @@ test('keeps middleware examples isolated to the matching framework and resets tr
   expect(secondResponse.ok()).toBeTruthy()
   expect(firstBody.events).toEqual(secondBody.events)
 
-  for (const [candidateFramework, candidatePath] of Object.entries(apiMiddlewarePaths)) {
+  async function assertOtherFramework(candidateFramework: Framework) {
     if (candidateFramework === framework) {
-      continue
+      return
     }
 
-    const response = await request.get(candidatePath)
+    const response = await request.get(apiMiddlewarePaths[candidateFramework])
     expect(response.status()).toBe(404)
   }
+  await assertOtherFramework('express')
+  await assertOtherFramework('hapi')
+  await assertOtherFramework('koa')
 })

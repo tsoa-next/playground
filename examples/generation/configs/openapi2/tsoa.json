@@ -1,0 +1,14 @@
+{
+  "entryFile": "./examples/generation/generationController.ts",
+  "tsconfig": "./tsconfig.json",
+  "noImplicitAdditionalProperties": "ignore",
+  "spec": {
+    "outputDirectory": "./examples/generation/output/openapi2",
+    "specVersion": 2,
+    "name": "openapi2"
+  },
+  "routes": {
+    "routesDir": "./examples/generation/output/openapi2",
+    "middleware": "express"
+  }
+}

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Route, Tags, Validate } from 'tsoa-next'
+import { NoSecurity, Body, Controller, Post, Route, Tags, Validate } from 'tsoa-next'
 import {
   AuditedTaggedEntityPayload,
   joiAuditedTaggedEntitySchema,
@@ -15,6 +15,7 @@ import {
  * consumers can compare schema-authoring styles while keeping tsoa-next generated
  * metadata and routes in the same application.
  */
+@NoSecurity()
 @Route('validation/external')
 @Tags('validation')
 export class ExternalValidationShowcaseController extends Controller {

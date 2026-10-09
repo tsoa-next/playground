@@ -1,4 +1,4 @@
-import { Controller, Example, Get, Header, Path, Query, Route, SuccessResponse, Tags } from 'tsoa-next'
+import { NoSecurity, Controller, Example, Get, Header, Path, Query, Route, SuccessResponse, Tags } from 'tsoa-next'
 import { CatalogItemView, FeaturedCatalogEnvelope, MarketCode } from '../models/catalog'
 import { PlaygroundScenarioService } from '../services/playgroundScenarioService'
 
@@ -7,6 +7,7 @@ import { PlaygroundScenarioService } from '../services/playgroundScenarioService
  * `getController` and `parameterController` fixtures, but with storefront language
  * that explains why a client would call each endpoint.
  */
+@NoSecurity()
 @Route('catalog')
 @Tags('catalog')
 export class CatalogLookupController extends Controller {

@@ -1,0 +1,13 @@
+{
+  "entryFile": "./examples/generation/generationController.ts",
+  "tsconfig": "./tsconfig.json",
+  "spec": {
+    "outputDirectory": "./examples/generation/output/standalone",
+    "specVersion": 3.1
+  },
+  "routes": {
+    "routesDir": "./examples/generation/output/standalone",
+    "middleware": "express",
+    "routeGenerator": "./examples/generation/standaloneGenerator.cjs"
+  }
+}

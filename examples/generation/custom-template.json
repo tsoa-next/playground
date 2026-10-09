@@ -1,0 +1,17 @@
+{
+  "entryFile": "./src/tsoaEntry.ts",
+  "controllerPathGlobs": [
+    "./src/controllers/*Controller.ts",
+    "./src/controllers/express/*Controller.ts"
+  ],
+  "tsconfig": "./tsconfig.json",
+  "spec": {
+    "outputDirectory": "./examples/generation/output/custom",
+    "specVersion": 3.1
+  },
+  "routes": {
+    "routesDir": "./examples/generation/output/custom",
+    "middleware": "express",
+    "middlewareTemplate": "./templates/expressRoutes.hbs"
+  }
+}

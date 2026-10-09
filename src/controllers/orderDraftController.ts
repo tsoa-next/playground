@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Path, Post, Query, Route, SuccessResponse, Tags } from 'tsoa-next'
+import { NoSecurity, Body, Controller, Get, Path, Post, Query, Route, SuccessResponse, Tags } from 'tsoa-next'
 import { CreateOrderDraftRequest, DraftPricingView, OrderDraftReceipt } from '../models/orders'
 import { SupportedCurrencyCode } from '../models/shared'
 import { PlaygroundScenarioService } from '../services/playgroundScenarioService'
@@ -8,6 +8,7 @@ import { PlaygroundScenarioService } from '../services/playgroundScenarioService
  * `postController` fixture, with explicit names that map to staging an order,
  * retrieving it later, and recalculating totals in a requested currency.
  */
+@NoSecurity()
 @Route('order-drafts')
 @Tags('orders')
 export class OrderDraftController extends Controller {
