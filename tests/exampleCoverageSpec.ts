@@ -176,8 +176,8 @@ test('defaults order repricing to USD when the currency query is omitted', async
   expect(response.ok()).toBeTruthy()
   expect(body.currency).toBe('USD')
   expect(body.subtotal.amount).toBe(320)
-  expect(body.tax.amount).toBe(26.4)
-  expect(body.grandTotal.amount).toBe(346.4)
+  expect(body.tax.amount).toBeCloseTo(26.4, 10)
+  expect(body.grandTotal.amount).toBeCloseTo(346.4, 10)
 })
 
 for (const validationCase of invalidValidationCases) {
@@ -279,12 +279,15 @@ test('keeps middleware examples isolated to the matching framework and resets tr
   expect(secondResponse.ok()).toBeTruthy()
   expect(firstBody.events).toEqual(secondBody.events)
 
-  for (const [candidateFramework, candidatePath] of Object.entries(apiMiddlewarePaths)) {
+  async function assertOtherFramework(candidateFramework: Framework) {
     if (candidateFramework === framework) {
-      continue
+      return
     }
 
-    const response = await request.get(candidatePath)
+    const response = await request.get(apiMiddlewarePaths[candidateFramework])
     expect(response.status()).toBe(404)
   }
+  await assertOtherFramework('express')
+  await assertOtherFramework('hapi')
+  await assertOtherFramework('koa')
 })

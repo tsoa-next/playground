@@ -6,10 +6,10 @@ import { MiddlewareShowcaseBase } from '../support/middlewareShowcaseBase'
 const middlewareEvents: string[] = []
 
 function recordHapiMiddleware(name: string): RouteOptionsPreAllOptions {
-  return async (_request: Request, _h: ResponseToolkit) => {
+  return (_request: Request, _h: ResponseToolkit) => new Promise<string>(resolve => {
     middlewareEvents.push(name)
-    return name
-  }
+    resolve(name)
+  })
 }
 
 function HapiMiddlewares(...middlewares: RouteOptionsPreAllOptions[]) {

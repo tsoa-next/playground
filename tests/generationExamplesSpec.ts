@@ -68,7 +68,7 @@ function config(directory: string, framework: string, version: number = 3.1) {
   }
 }
 
-test('runs installed help/version and generates JSON specs using JSON YAML and CJS configs for every OpenAPI version', async ({}, testInfo) => {
+test('runs installed help/version and generates JSON specs using JSON YAML and CJS configs for every OpenAPI version', ({}, testInfo) => {
   test.setTimeout(90_000)
   const directory = mkdtempSync(join(tmpdir(), 'playground-configs-'))
   try {
@@ -86,14 +86,15 @@ test('runs installed help/version and generates JSON specs using JSON YAML and C
       const generated = run(['spec-and-routes', '-c', file])
       expect(generated.status, generated.stderr).toBe(0)
       const spec = JSON.parse(readFileSync(join(output, 'swagger.json'), 'utf8'))
-      expect(version === 2 ? spec.swagger : spec.openapi).toBe(version === 2 ? '2.0' : version === 3 ? '3.0.0' : '3.1.0')
+      const expectedVersion = version === 3 ? '3.0.0' : '3.1.0'
+      expect(version === 2 ? spec.swagger : spec.openapi).toBe(version === 2 ? '2.0' : expectedVersion)
       expect(spec.paths['/generation-example'].post).toBeTruthy()
       expect(readFileSync(join(output, 'routes.ts'), 'utf8')).toContain('RegisterRoutes')
     }
   } finally { rmSync(directory, { recursive: true, force: true }) }
 })
 
-test('discovers configs and checks stale output without writing, then generates only changed output', async ({}, testInfo) => {
+test('discovers configs and checks stale output without writing, then generates only changed output', ({}, testInfo) => {
   test.setTimeout(90_000)
   const directory = mkdtempSync(join(tmpdir(), 'playground-output-policy-'))
   try {
@@ -118,7 +119,7 @@ test('discovers configs and checks stale output without writing, then generates 
   } finally { rmSync(directory, { recursive: true, force: true }) }
 })
 
-test('checks the selected custom template without writes and reports real parse failures before source analysis', async ({}, testInfo) => {
+test('checks the selected custom template without writes and reports real parse failures before source analysis', ({}, testInfo) => {
   test.setTimeout(90_000)
   const directory = mkdtempSync(join(tmpdir(), 'playground-template-'))
   try {
@@ -155,7 +156,7 @@ test('runs the object-config programmatic example and reuses supplied metadata',
   } finally { rmSync(directory, { recursive: true, force: true }) }
 })
 
-test('loads only selected dependencies, reports genuine failures and permits explicit recovery', async () => {
+test('loads only selected dependencies, reports genuine failures and permits explicit recovery', () => {
   const directory = mkdtempSync(join(tmpdir(), 'playground-dependencies-'))
   try {
     const script = `
@@ -200,7 +201,7 @@ test('loads only selected dependencies, reports genuine failures and permits exp
 })
 
 
-test('selects only required output integrations and recovers after their real failure', async ({}, testInfo) => {
+test('selects only required output integrations and recovers after their real failure', ({}, testInfo) => {
   test.setTimeout(90_000)
   const directory = mkdtempSync(join(tmpdir(), 'playground-selected-output-'))
   try {
@@ -224,7 +225,7 @@ test('executes ignore/remove/reject additional-property policies through generat
   // Generated route imports resolve through the installed packages above this disposable directory.
   const directory = mkdtempSync(join(root, '.playground-policies-'))
   try {
-    for (const policy of ['ignore', 'silently-remove-extras', 'throw-on-extras']) {
+    async function assertPolicy(policy: 'ignore' | 'silently-remove-extras' | 'throw-on-extras') {
       const output = join(directory, policy)
       const file = join(directory, 'tsoa.json')
       writeFileSync(file, JSON.stringify({ ...config(output, testInfo.project.name), noImplicitAdditionalProperties: policy }))
@@ -240,6 +241,9 @@ test('executes ignore/remove/reject additional-property policies through generat
         }
       } finally { await stop() }
     }
+    await assertPolicy('ignore')
+    await assertPolicy('silently-remove-extras')
+    await assertPolicy('throw-on-extras')
   } finally { rmSync(directory, { recursive: true, force: true }) }
 })
 

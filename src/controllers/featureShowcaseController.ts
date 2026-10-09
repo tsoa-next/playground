@@ -29,7 +29,7 @@ export class FeatureShowcaseController extends Controller {
 
   @Get('response')
   @Response<{ message: string }>(409, 'Conflict')
-  public response(@Query() conflict = false, @Res() rejected: TsoaResponse<409, { message: string }, { 'x-demo-response': string }>): { message: string } {
+  public response(@Res() rejected: TsoaResponse<409, { message: string }, { 'x-demo-response': string }>, @Query() conflict = false): { message: string } {
     if (conflict) { return rejected(409, { message: 'Please choose another name' }, { 'x-demo-response': 'conflict' }) }
     this.setHeader('x-demo-response', 'success')
     return { message: 'accepted' }

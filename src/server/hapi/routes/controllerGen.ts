@@ -1585,8 +1585,8 @@ export function RegisterRoutes(server: any, opts?: { validation?: Tsoa.Validatio
             }
         });
         const argsFeatureShowcaseController_response: Record<string, TsoaRoute.ParameterSchema> = {
-            conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":0,"dataType":"boolean"},
-            rejected: {"in":"res","name":"409","parameterIndex":1,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+            rejected: {"in":"res","name":"409","parameterIndex":0,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+            conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":1,"dataType":"boolean"},
         };
         server.route({
             method: 'get',

@@ -11,7 +11,7 @@ export async function generateExample(output = resolve('examples/generation/outp
     routes: { routesDir: resolve(output, 'express'), middleware: 'express' },
   }
   const metadata = await generateSpecAndRoutes({ configuration: config })
-  for (const framework of ['koa', 'hapi'] as const) {
+  async function generateWithMetadata(framework: 'koa' | 'hapi') {
     const reused = await generateSpecAndRoutes({ configuration: {
       ...config,
       spec: { ...config.spec, outputDirectory: resolve(output, framework) },
@@ -19,6 +19,8 @@ export async function generateExample(output = resolve('examples/generation/outp
     } }, metadata)
     if (reused !== metadata) { throw new Error('Expected supplied metadata identity to be preserved') }
   }
+  await generateWithMetadata('koa')
+  await generateWithMetadata('hapi')
   return metadata
 }
 if (require.main === module) { generateExample(process.argv[2]).catch(error => { console.error(error); process.exitCode = 1 }) }

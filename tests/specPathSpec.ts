@@ -146,10 +146,12 @@ test('resets SpecPath counters back to zero after exercising the custom handlers
 
 test('runs an uncached custom string handler on every request', async ({ request }) => {
   await request.post('/v1/specPath/state/reset')
-  for (let i = 0; i < 2; i++) {
+  async function assertUncachedString() {
     const response = await request.get('/v1/specPath/customUncachedString')
     expect(response.status()).toBe(200)
     expect(await response.text()).toContain('custom:tsoa-next Playground API')
   }
+  await assertUncachedString()
+  await assertUncachedString()
   expect((await (await request.get('/v1/specPath/state')).json()).customStringCalls).toBe(2)
 })

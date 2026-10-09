@@ -118,7 +118,7 @@ test('calculates a carrier-specific shipping quote', async ({ request }) => {
   expect(response.ok()).toBeTruthy()
   expect(body.carrierCode).toBe('city-bike')
   expect(body.currency).toBe('EUR')
-  expect(body.quotedAmount).toBe(21.6)
+  expect(body.quotedAmount).toBeCloseTo(21.6, 10)
 })
 
 test('creates and retrieves an order draft', async ({ request }) => {
@@ -148,8 +148,8 @@ test('reprices an order draft payload in the requested output currency', async (
   expect(response.ok()).toBeTruthy()
   expect(body.currency).toBe('EUR')
   expect(body.subtotal.amount).toBe(320)
-  expect(body.tax.amount).toBe(60.8)
-  expect(body.grandTotal.amount).toBe(380.8)
+  expect(body.tax.amount).toBeCloseTo(60.8, 10)
+  expect(body.grandTotal.amount).toBeCloseTo(380.8, 10)
 })
 
 test('validates a payload with zod', async ({ request }) => {

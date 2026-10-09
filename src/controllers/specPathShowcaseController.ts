@@ -40,9 +40,11 @@ async function customStringHandler(context: SpecRequestContext): Promise<string>
   return `custom:${spec.info.title}`
 }
 
-async function customStreamHandler(): Promise<Readable> {
-  specPathState.customStreamCalls += 1
-  return Readable.from([Buffer.from('streamed custom spec')], { objectMode: false })
+function customStreamHandler(): Promise<Readable> {
+  return new Promise(resolve => {
+    specPathState.customStreamCalls += 1
+    resolve(Readable.from([Buffer.from('streamed custom spec')], { objectMode: false }))
+  })
 }
 
 const streamCacheHandler: SpecCacheHandler = {

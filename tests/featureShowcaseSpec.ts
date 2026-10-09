@@ -20,13 +20,15 @@ test('uses root security, NoSecurity, alternatives, combined credentials and sco
 })
 
 test('binds full bodies, body properties, native requests and request properties with request-scoped IoC', async ({ request }) => {
-  for (const id of ['first-request', 'second-request']) {
+  async function assertRequestIdentity(id: string) {
     const response = await request.post('/v1/features/greeting', { data: { name: 'Ada' }, headers: { 'x-request-id': id } })
     expect(response.status()).toBe(200)
     expect(await response.json()).toEqual({ greeting: 'Hello Ada', requestId: id })
     const native = await request.get('/v1/features/request', { headers: { 'x-request-id': id } })
     expect(await native.json()).toEqual({ sameRequestId: true, requestId: id })
   }
+  await assertRequestIdentity('first-request')
+  await assertRequestIdentity('second-request')
   const property = await request.post('/v1/features/body-property', { data: { name: 'Ada' } })
   expect(await property.json()).toEqual({ name: 'Ada' })
   expect((await request.post('/v1/features/body-property', { data: {} })).status()).toBe(400)
@@ -51,11 +53,13 @@ test('writes typed response callbacks, controller headers and declared media typ
 })
 
 test('dispatches PUT PATCH DELETE HEAD OPTIONS and documents hidden/deprecated extensions', async ({ request }, testInfo) => {
-  for (const method of ['put', 'patch'] as const) {
+  async function assertVerb(method: 'put' | 'patch') {
     const response = await request[method]('/v1/features/verbs', { data: { name: method } })
     expect(response.status()).toBe(200)
     expect(await response.json()).toEqual({ name: method })
   }
+  await assertVerb('put')
+  await assertVerb('patch')
   expect((await request.delete('/v1/features/verbs')).status()).toBe(204)
   const head = await request.head(testInfo.project.name === 'hapi' ? '/v1/features/hidden' : '/v1/features/verbs')
   expect(head.status()).toBe(testInfo.project.name === 'hapi' ? 200 : 204)

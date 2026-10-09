@@ -1258,8 +1258,8 @@ export function RegisterRoutes(router: KoaRouter,opts?:{multer?:ReturnType<typeo
             });
         });
         const argsFeatureShowcaseController_response: Record<string, TsoaRoute.ParameterSchema> = {
-                conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":0,"dataType":"boolean"},
-                rejected: {"in":"res","name":"409","parameterIndex":1,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+                rejected: {"in":"res","name":"409","parameterIndex":0,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+                conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":1,"dataType":"boolean"},
         };
         router.get('/v1/features/response',
             ...(fetchMiddlewares<Middleware>(FeatureShowcaseController)),

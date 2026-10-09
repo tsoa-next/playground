@@ -1273,8 +1273,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         });
 
         const argsFeatureShowcaseController_response: Record<string, TsoaRoute.ParameterSchema> = {
-                conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":0,"dataType":"boolean"},
-                rejected: {"in":"res","name":"409","parameterIndex":1,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+                rejected: {"in":"res","name":"409","parameterIndex":0,"required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"message":{"dataType":"string","required":true}}},
+                conflict: {"default":false,"in":"query","name":"conflict","parameterIndex":1,"dataType":"boolean"},
         };
         app.get('/v1/features/response',
             ...(fetchMiddlewares<RequestHandler>(FeatureShowcaseController)),
