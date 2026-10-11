@@ -67,7 +67,7 @@
     "@types/koa-bodyparser": "^4.3.12",
     "@types/multer": "^2.2.0",
     "@types/node": "^25.6.0",
-    "tsoa-next": "8.4.0",
+    "tsoa-next": "8.4.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
